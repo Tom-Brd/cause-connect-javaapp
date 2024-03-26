@@ -15,6 +15,8 @@ public class CauseconnectApplication implements AppShellConfigurator {
 
     public static void main(String[] args) throws IOException {
         SpringApplication.run(CauseconnectApplication.class, args);
+
+        System.out.println(AssociationContext.getInstance().getAssociation().getId());
     }
 
 }
