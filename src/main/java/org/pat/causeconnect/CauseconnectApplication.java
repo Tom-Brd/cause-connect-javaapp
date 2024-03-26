@@ -26,6 +26,10 @@ public class CauseconnectApplication implements AppShellConfigurator {
 
             String associationId = prop.getProperty("association_id");
 
+            if (associationId == null || associationId.isEmpty()) {
+                throw new RuntimeException("Association ID not found in properties file");
+            }
+
             RestTemplate restTemplate = new RestTemplate();
             String url = "http://localhost:3000/associations/" + associationId;
             Association association = restTemplate.getForObject(url, Association.class);
