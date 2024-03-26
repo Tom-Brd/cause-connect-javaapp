@@ -1,6 +1,5 @@
 package org.pat.causeconnect.config;
 
-import com.vaadin.flow.server.VaadinSession;
 import org.pat.causeconnect.service.auth.AuthenticationResponse;
 import org.pat.causeconnect.service.auth.AuthenticationService;
 import org.pat.causeconnect.service.auth.UserDetailResponse;
