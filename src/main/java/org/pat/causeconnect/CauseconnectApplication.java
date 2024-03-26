@@ -26,8 +26,6 @@ public class CauseconnectApplication implements AppShellConfigurator {
 
             String associationId = prop.getProperty("association_id");
 
-            System.out.println("Association ID: " + associationId);
-
             RestTemplate restTemplate = new RestTemplate();
             String url = "http://localhost:3000/associations/" + associationId;
             Association association = restTemplate.getForObject(url, Association.class);
@@ -37,11 +35,7 @@ public class CauseconnectApplication implements AppShellConfigurator {
             throw new RuntimeException(e);
         }
 
-        System.out.println(AssociationContext.getInstance().getAssociation().getName());
-
         SpringApplication.run(CauseconnectApplication.class, args);
-
-        System.out.println(AssociationContext.getInstance().getAssociation().getId());
     }
 
 }

@@ -58,4 +58,14 @@ public class AuthenticationService {
                 authorities
         );
     }
+
+    // TODO: Implement password reset
+    public void resetPassword(String email) {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "http://localhost:3000/users/send-password-email";
+
+        ResetPasswordRequest resetPasswordRequest = new ResetPasswordRequest(email, AssociationContext.getInstance().getAssociation().getId());
+
+        restTemplate.postForObject(url, resetPasswordRequest, Void.class);
+    }
 }
