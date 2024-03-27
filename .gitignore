@@ -1,6 +1,7 @@
 node_modules
 HELP.md
 target/
+frontend/generated
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -32,3 +33,4 @@ build/
 
 ### VS Code ###
 .vscode/
+src/main/resources/.DS_Store
