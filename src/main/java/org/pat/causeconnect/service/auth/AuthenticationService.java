@@ -1,6 +1,7 @@
 package org.pat.causeconnect.service.auth;
 
 import org.pat.causeconnect.entity.AssociationContext;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -17,9 +18,12 @@ import java.util.List;
 
 @Service
 public class AuthenticationService {
+    @Value("${base.url}")
+    private String baseUrl;
+
     public AuthenticationResponse authenticate(String email, String password) {
         RestTemplate restTemplate = new RestTemplate();
-        String url = "http://localhost:3000/auth/login";
+        String url = baseUrl + "/auth/login";
 
         String associationId = AssociationContext.getInstance().getAssociation().getId();
 
@@ -39,7 +43,7 @@ public class AuthenticationService {
 
     public UserDetailResponse getUserDetails(String token) {
         RestTemplate restTemplate = new RestTemplate();
-        String url = "http://localhost:3000/users/me";
+        String url = baseUrl + "/users/me";
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
         HttpEntity<String> entity = new HttpEntity<>(headers);
@@ -62,7 +66,7 @@ public class AuthenticationService {
     // TODO: Implement password reset
     public void resetPassword(String email) {
         RestTemplate restTemplate = new RestTemplate();
-        String url = "http://localhost:3000/users/send-password-email";
+        String url = baseUrl + "/users/send-password-email";
 
         ResetPasswordRequest resetPasswordRequest = new ResetPasswordRequest(email, AssociationContext.getInstance().getAssociation().getId());
 

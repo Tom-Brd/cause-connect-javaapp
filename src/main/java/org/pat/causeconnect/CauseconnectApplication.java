@@ -5,6 +5,8 @@ import org.pat.causeconnect.entity.Association;
 import org.pat.causeconnect.entity.AssociationContext;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.FileInputStream;
@@ -15,7 +17,15 @@ import java.util.Properties;
 @SpringBootApplication
 public class CauseconnectApplication implements AppShellConfigurator {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+        Properties appProps = PropertiesLoaderUtils.loadProperties(
+                new ClassPathResource("application.properties")
+        );
+        String baseUrl = appProps.getProperty("base.url");
+        if (baseUrl == null || baseUrl.isEmpty()) {
+            throw new RuntimeException("base.url property is not set in application.properties");
+        }
+
         Properties prop = new Properties();
 
         String propertiesFileName = "association.properties";
@@ -31,7 +41,7 @@ public class CauseconnectApplication implements AppShellConfigurator {
             }
 
             RestTemplate restTemplate = new RestTemplate();
-            String url = "http://localhost:3000/associations/" + associationId;
+            String url = baseUrl + "/associations/" + associationId;
             Association association = restTemplate.getForObject(url, Association.class);
 
             AssociationContext.getInstance().setAssociation(association);
