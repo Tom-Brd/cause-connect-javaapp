@@ -4,6 +4,8 @@ import com.vaadin.flow.spring.security.AuthenticationContext;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 public class SecurityService {
     private final AuthenticationContext authenticationContext;
@@ -12,10 +14,9 @@ public class SecurityService {
         this.authenticationContext = authenticationContext;
     }
 
-    public UserDetails getAuthenticatedUser() {
+    public Optional<UserDetails> getAuthenticatedUser() {
         System.out.println(authenticationContext.getAuthenticatedUser(UserDetails.class));
-        return authenticationContext.getAuthenticatedUser(UserDetails.class).isPresent() ?
-                authenticationContext.getAuthenticatedUser(UserDetails.class).get() : null;
+        return authenticationContext.getAuthenticatedUser(UserDetails.class);
     }
 
     public void logout() {
