@@ -48,10 +48,11 @@ public class MainLayout extends AppLayout {
         String associationName = AssociationContext.getInstance().getAssociation().getName();
         H1 appName = new H1(associationName);
         appName.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
+        Header header = new Header(appName);
 
         Scroller scroller = new Scroller(createNavigation());
 
-        addToDrawer(appName, scroller, createFooter());
+        addToDrawer(header, scroller, createFooter());
     }
 
     private SideNav createNavigation() {

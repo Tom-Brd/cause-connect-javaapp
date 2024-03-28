@@ -1,6 +1,8 @@
 package org.pat.causeconnect;
 
 import com.vaadin.flow.component.page.AppShellConfigurator;
+import com.vaadin.flow.component.page.Push;
+import com.vaadin.flow.theme.Theme;
 import org.pat.causeconnect.entity.Association;
 import org.pat.causeconnect.entity.AssociationContext;
 import org.springframework.boot.SpringApplication;
@@ -15,6 +17,8 @@ import java.nio.file.Paths;
 import java.util.Properties;
 
 @SpringBootApplication
+@Theme(value = "causeconnect")
+@Push
 public class CauseconnectApplication implements AppShellConfigurator {
 
     public static void main(String[] args) throws IOException {
