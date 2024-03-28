@@ -57,7 +57,7 @@ public class AuthenticationService {
         List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("USER_" + userDetail.getRole().toUpperCase()));
 
         return new User(
-                userDetail.getEmail(),
+                userDetail.getFullName(),
                 "",
                 authorities
         );

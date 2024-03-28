@@ -1,7 +1,7 @@
 node_modules
 HELP.md
 target/
-frontend/generated
+frontend/generated/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
