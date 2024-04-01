@@ -6,6 +6,9 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -21,23 +24,29 @@ public class AuthenticationService {
     @Value("${base.url}")
     private String baseUrl;
 
-    public AuthenticationResponse authenticate(String email, String password) {
+    public Authentication authenticate(String email, String password, String associationId) {
         RestTemplate restTemplate = new RestTemplate();
         String url = baseUrl + "/auth/login";
 
-        String associationId = AssociationContext.getInstance().getAssociation().getId();
-
         AuthenticationRequest authenticationRequest = new AuthenticationRequest(email, password, associationId);
 
-        System.out.println("Association ID: " + associationId);
-
         try {
-            return restTemplate.postForObject(url, authenticationRequest, AuthenticationResponse.class);
+            AuthenticationResponse response =  restTemplate.postForObject(url, authenticationRequest, AuthenticationResponse.class);
+
+            if (response.getToken() != null && !response.getToken().isEmpty()) {
+                UserDetailResponse userDetail = getUserDetails(response.getToken());
+                UserDetails userDetails = createUserDetails(userDetail);
+
+                return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            } else {
+                throw new BadCredentialsException(response.getMessage());
+            }
+
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode().value() == 401) {
-                return new AuthenticationResponse(null, "Invalid email or password");
+                throw new BadCredentialsException("Invalid credentials");
             }
-            return new AuthenticationResponse(null, "An error occurred");
+            throw e;
         }
     }
 
