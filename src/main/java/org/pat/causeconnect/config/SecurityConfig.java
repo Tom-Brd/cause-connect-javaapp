@@ -11,11 +11,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 @Configuration
 public class SecurityConfig
         extends VaadinWebSecurity {
-    @Bean
-    public CustomAuthenticationProvider customAuthenticationProvider() {
-        return new CustomAuthenticationProvider();
-    }
-
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
