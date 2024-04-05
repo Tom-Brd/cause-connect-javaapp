@@ -19,6 +19,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 @Route("login")
 @AnonymousAllowed
 public class LoginView extends VerticalLayout {
@@ -57,29 +59,43 @@ public class LoginView extends VerticalLayout {
         Button loginButton = new Button("Connexion");
         loginButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         loginButton.setWidth("300px");
+        AtomicBoolean isValid = new AtomicBoolean(true);
+
         loginButton.addClickListener(e -> {
-            // if one of the fields is empty, return
-            if (emailField.isEmpty() || passwordField.isEmpty() || associationSelect.isEmpty()) {
-                if (emailField.isEmpty()) {
-                    emailField.setInvalid(true);
-                }
-                if (passwordField.isEmpty()) {
-                    passwordField.setInvalid(true);
-                }
-                if (associationSelect.isEmpty()) {
-                    associationSelect.setInvalid(true);
-                }
-                return;
-            }
-            try {
-                Authentication authentication = authenticationService.authenticate(emailField.getValue(), passwordField.getValue(), associationSelect.getValue().getId());
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                UI.getCurrent().navigate("");
-            } catch (BadCredentialsException ex) {
-                emailField.setErrorMessage("Email ou mot de passe incorrect.");
+            emailField.setInvalid(false);
+            passwordField.setInvalid(false);
+            associationSelect.setInvalid(false);
+            isValid.set(true);
+
+            if (emailField.isEmpty()) {
                 emailField.setInvalid(true);
+                isValid.set(false);
+            }
+            if (passwordField.isEmpty()) {
                 passwordField.setInvalid(true);
-                NotificationUtils.createNotification("Email ou mot de passe incorrect.", false).open();
+                isValid.set(false);
+            } else if (passwordField.getValue().length() < 8) {
+                passwordField.setInvalid(true);
+                passwordField.setErrorMessage("Le mot de passe doit contenir au moins 8 caractères.");
+                isValid.set(false);
+            }
+            if (associationSelect.isEmpty()) {
+                associationSelect.setInvalid(true);
+                isValid.set(false);
+            }
+
+            if (isValid.get()) {
+                try {
+                    Authentication authentication = authenticationService.authenticate(emailField.getValue(), passwordField.getValue(), associationSelect.getValue().getId());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    UI.getCurrent().navigate("");
+                } catch (BadCredentialsException ex) {
+                    emailField.setErrorMessage("Email ou mot de passe incorrect.");
+                    emailField.setInvalid(true);
+                    passwordField.setInvalid(true);
+                    NotificationUtils.createNotification("Email ou mot de passe incorrect.", false).open();
+                    isValid.set(false);
+                }
             }
         });
         return loginButton;
@@ -90,6 +106,7 @@ public class LoginView extends VerticalLayout {
         passwordField.setLabel("Password");
         passwordField.setRequired(true);
         passwordField.setWidth("300px");
+        passwordField.setMinLength(8);
         passwordField.setErrorMessage("Veuillez saisir un mot de passe.");
         return passwordField;
     }
