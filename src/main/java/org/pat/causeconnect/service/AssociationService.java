@@ -16,4 +16,11 @@ public class AssociationService {
 
         return restTemplate.getForObject(url, Association[].class);
     }
+
+    public Association getAssociation(String id) {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = baseUrl + "/associations/" + id;
+
+        return restTemplate.getForObject(url, Association.class);
+    }
 }

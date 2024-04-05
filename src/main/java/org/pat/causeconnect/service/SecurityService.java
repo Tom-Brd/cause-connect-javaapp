@@ -1,25 +1,25 @@
 package org.pat.causeconnect.service;
 
-import com.vaadin.flow.spring.security.AuthenticationContext;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.pat.causeconnect.entity.User;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
 @Component
 public class SecurityService {
-    private final AuthenticationContext authenticationContext;
+    public Optional<User> getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-    public SecurityService(AuthenticationContext authenticationContext) {
-        this.authenticationContext = authenticationContext;
-    }
+        if (authentication == null || !authentication.isAuthenticated() || !(authentication.getPrincipal() instanceof User)) {
+            return Optional.empty();
+        }
 
-    public Optional<UserDetails> getAuthenticatedUser() {
-        System.out.println(authenticationContext.getAuthenticatedUser(UserDetails.class));
-        return authenticationContext.getAuthenticatedUser(UserDetails.class);
+        return Optional.ofNullable((User) authentication.getPrincipal());
     }
 
     public void logout() {
-        authenticationContext.logout();
+        SecurityContextHolder.clearContext();
     }
 }
