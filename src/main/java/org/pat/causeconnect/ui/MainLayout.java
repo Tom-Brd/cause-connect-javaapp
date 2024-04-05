@@ -10,25 +10,38 @@ import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import org.pat.causeconnect.entity.AssociationContext;
+import org.pat.causeconnect.entity.User;
 import org.pat.causeconnect.service.SecurityService;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.util.Optional;
 
-public class MainLayout extends AppLayout {
+public class MainLayout extends AppLayout implements BeforeEnterObserver {
     private H2 viewTitle;
 
     private final SecurityService securityService;
     private final AccessAnnotationChecker accessChecker;
 
+    private User user;
+
     public MainLayout(SecurityService securityService, AccessAnnotationChecker accessChecker) {
         this.securityService = securityService;
         this.accessChecker = accessChecker;
+
+        Optional<User> userOptional = securityService.getAuthenticatedUser();
+
+        if (userOptional.isPresent()) {
+            user = userOptional.get();
+        } else {
+            getUI().ifPresent(ui -> ui.navigate(LoginView.class));
+            return;
+        }
+
         setPrimarySection(Section.DRAWER);
         createHeader();
         createDrawer();
@@ -45,7 +58,7 @@ public class MainLayout extends AppLayout {
     }
 
     private void createDrawer() {
-        String associationName = AssociationContext.getInstance().getAssociation().getName();
+        String associationName = user.getAssociation().getName();
         H1 appName = new H1(associationName);
         appName.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
         Header header = new Header(appName);
@@ -68,11 +81,8 @@ public class MainLayout extends AppLayout {
     private Footer createFooter() {
         Footer footer = new Footer();
 
-        Optional<UserDetails> user = securityService.getAuthenticatedUser();
-        if (user.isPresent()) {
-            UserDetails userDetails = user.get();
-
-            Avatar avatar = new Avatar(userDetails.getUsername());
+        if (user != null) {
+            Avatar avatar = new Avatar(user.getFullName());
             avatar.setThemeName("xsmall");
             avatar.getElement().setAttribute("tabindex", "-1");
 
@@ -82,7 +92,7 @@ public class MainLayout extends AppLayout {
             MenuItem userName = userMenu.addItem("");
             Div div = new Div();
             div.add(avatar);
-            div.add(userDetails.getUsername());
+            div.add(user.getFullName());
             div.add(new Icon("lumo", "dropdown"));
             div.getElement().getStyle().set("display", "flex");
             div.getElement().getStyle().set("align-items", "center");
@@ -111,5 +121,12 @@ public class MainLayout extends AppLayout {
     private String getCurrentPageTitle() {
         PageTitle title = getContent().getClass().getAnnotation(PageTitle.class);
         return title == null ? "" : title.value();
+    }
+
+    @Override
+    public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
+        if (user == null) {
+            beforeEnterEvent.rerouteTo(LoginView.class);
+        }
     }
 }

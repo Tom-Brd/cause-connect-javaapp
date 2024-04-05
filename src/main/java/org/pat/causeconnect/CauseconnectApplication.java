@@ -12,9 +12,7 @@ import java.io.IOException;
 @Theme(value = "causeconnect")
 @Push
 public class CauseconnectApplication implements AppShellConfigurator {
-
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         SpringApplication.run(CauseconnectApplication.class, args);
     }
-
 }
