@@ -6,6 +6,7 @@ import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.sidenav.SideNav;
@@ -15,10 +16,13 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import org.pat.causeconnect.entity.Project;
 import org.pat.causeconnect.entity.User;
 import org.pat.causeconnect.service.SecurityService;
+import org.pat.causeconnect.service.project.ProjectService;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 public class MainLayout extends AppLayout implements BeforeEnterObserver {
@@ -72,7 +76,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         SideNav nav = new SideNav();
 
         if (accessChecker.hasAccess(DashboardView.class)) {
-            nav.addItem(new SideNavItem("Dashboard", DashboardView.class, LineAwesomeIcon.LIST_SOLID.create()));
+            nav.addItem(new SideNavItem("Dashboard", DashboardView.class, VaadinIcon.BOOK.create()));
         }
 
         return nav;
