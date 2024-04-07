@@ -19,14 +19,14 @@ import java.util.List;
 
 @Route(value = "projects", layout = MainLayout.class)
 @AnonymousAllowed
-@PageTitle("Projects")
+@PageTitle("Mes Projets")
 public class ProjectsView extends VerticalLayout {
     public ProjectsView(ProjectService projectService) {
 
         setSizeFull();
         ArrayList<Project> projects = projectService.getMyProjects();
 
-        add(new H2("My Projects"));
+        add(new H2("Mes Projets"));
 
         FlexLayout projectList = new FlexLayout();
         projectList.setWidthFull();
