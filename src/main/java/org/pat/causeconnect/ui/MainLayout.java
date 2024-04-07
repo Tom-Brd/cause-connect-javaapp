@@ -20,6 +20,8 @@ import org.pat.causeconnect.entity.Project;
 import org.pat.causeconnect.entity.User;
 import org.pat.causeconnect.service.SecurityService;
 import org.pat.causeconnect.service.project.ProjectService;
+import org.pat.causeconnect.ui.project.ProjectsView;
+import org.pat.causeconnect.ui.task.TasksView;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.util.ArrayList;
@@ -76,7 +78,15 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         SideNav nav = new SideNav();
 
         if (accessChecker.hasAccess(DashboardView.class)) {
-            nav.addItem(new SideNavItem("Dashboard", DashboardView.class, VaadinIcon.BOOK.create()));
+            nav.addItem(new SideNavItem("Tableau de bord", DashboardView.class, VaadinIcon.HOME_O.create()));
+        }
+
+        if (accessChecker.hasAccess(ProjectsView.class)) {
+            nav.addItem(new SideNavItem("Mes projets", ProjectsView.class, VaadinIcon.CALENDAR_CLOCK.create()));
+        }
+
+        if (accessChecker.hasAccess(TasksView.class)) {
+            nav.addItem(new SideNavItem("Mes tâches", TasksView.class, VaadinIcon.BULLETS.create()));
         }
 
         return nav;

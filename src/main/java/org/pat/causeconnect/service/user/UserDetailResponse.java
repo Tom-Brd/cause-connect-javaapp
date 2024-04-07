@@ -1,4 +1,4 @@
-package org.pat.causeconnect.service.auth;
+package org.pat.causeconnect.service.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -5,6 +5,7 @@ import org.pat.causeconnect.entity.Association;
 import org.pat.causeconnect.entity.AssociationContext;
 import org.pat.causeconnect.entity.User;
 import org.pat.causeconnect.service.AssociationService;
+import org.pat.causeconnect.service.user.UserDetailResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
