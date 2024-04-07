@@ -5,39 +5,96 @@ import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import org.pat.causeconnect.entity.Project;
+import org.pat.causeconnect.entity.task.Task;
+import org.pat.causeconnect.entity.task.TaskStatus;
 import org.pat.causeconnect.service.project.ProjectService;
+import org.pat.causeconnect.service.task.TaskService;
 import org.pat.causeconnect.ui.component.CardComponent;
 import org.pat.causeconnect.ui.project.ProjectView;
 import org.pat.causeconnect.ui.project.ProjectsView;
+import org.pat.causeconnect.ui.task.TaskView;
+import org.pat.causeconnect.ui.task.TasksView;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Route(value = "", layout = MainLayout.class)
 @AnonymousAllowed
-@PageTitle("Dashboard")
+@PageTitle("Tableau de bord")
 public class DashboardView extends VerticalLayout {
-    public DashboardView(ProjectService projectService) {
+    public DashboardView(ProjectService projectService, TaskService taskService) {
         setSizeFull();
         ArrayList<Project> projects = projectService.getMyProjects();
+        ArrayList<Task> tasks = taskService.getMyTasks();
 
-        add(new H2("My Projects"));
+        createProjectsLayout(projects);
+        createTasksLayout(tasks);
+    }
 
-        Button viewAllButton;
-        if (projects.size() > 3) {
-            viewAllButton = new Button("Voir plus...", e -> {
-                getUI().ifPresent(ui -> ui.navigate(ProjectsView.class));
-            });
-            viewAllButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+    private void createTasksLayout(ArrayList<Task> tasks) {
+        add(new H2("Mes Tâches"));
+
+        Button createTaskButton = new Button("Créer une tâche");
+        createTaskButton.setIcon(VaadinIcon.PLUS.create());
+        createTaskButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        add(createTaskButton);
+
+        Button viewAllTasksButton;
+        if (tasks.size() > 3) {
+            viewAllTasksButton = new Button("Voir plus...", e -> getUI().ifPresent(ui -> ui.navigate(TasksView.class)));
+            viewAllTasksButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         } else {
-            viewAllButton = null;
+            viewAllTasksButton = null;
+        }
+
+        FlexLayout taskList = new FlexLayout();
+        taskList.setWidth("50%");
+        taskList.setFlexWrap(FlexLayout.FlexWrap.WRAP);
+        taskList.setJustifyContentMode(JustifyContentMode.START);
+        taskList.setAlignItems(Alignment.START);
+
+        List<Task> tasksList = tasks
+                .stream()
+                .filter(task -> task.getStatus() == TaskStatus.TODO)
+                .sorted(Comparator.comparing(Task::getDeadline))
+                .limit(3)
+                .toList();
+        tasksList.forEach(task -> {
+            Date endTime = task.getDeadline();
+            SimpleDateFormat formatter = new SimpleDateFormat("dd MMMM", Locale.FRENCH);
+            CardComponent taskDiv = new CardComponent(task.getProject().getName() + " : " +task.getTitle(), "Échéance : " + formatter.format(endTime));
+            ComponentEventListener<AttachEvent> listener = event -> taskDiv.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate(TaskView.class, task.getId())));
+            taskDiv.addAttachListener(listener);
+            taskDiv.addClassName("card--task");
+            taskList.add(taskDiv);
+            if (viewAllTasksButton != null) taskList.add(viewAllTasksButton);
+        });
+
+        add(taskList);
+    }
+
+    private void createProjectsLayout(ArrayList<Project> projects) {
+        add(new H2("Mes Projets"));
+
+        Button createProjectButton = new Button("Créer un projet");
+        createProjectButton.setIcon(VaadinIcon.PLUS.create());
+        createProjectButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        add(createProjectButton);
+
+
+        Button viewAllProjectsButton;
+        if (projects.size() > 3) {
+            viewAllProjectsButton = new Button("Voir plus...", e -> getUI().ifPresent(ui -> ui.navigate(ProjectsView.class)));
+            viewAllProjectsButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        } else {
+            viewAllProjectsButton = null;
         }
 
         FlexLayout projectList = new FlexLayout();
@@ -48,19 +105,15 @@ public class DashboardView extends VerticalLayout {
                 .sorted(Comparator.comparing(Project::getStartTime))
                 .toList();
         List<Project> limitedProjects = sortedProjects.stream()
-                        .limit(3)
-                        .toList();
+                .limit(3)
+                .toList();
         limitedProjects.forEach(project -> {
             CardComponent projectDiv = new CardComponent(project.getName(), project.getDescription());
-            ComponentEventListener<AttachEvent> listener = event -> {
-                projectDiv.addClickListener(e -> {
-                    getUI().ifPresent(ui -> ui.navigate(ProjectView.class, project.getId()));
-                });
-            };
+            ComponentEventListener<AttachEvent> listener = event -> projectDiv.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate(ProjectView.class, project.getId())));
             projectDiv.addAttachListener(listener);
 
             projectList.add(projectDiv);
-            projectList.add(viewAllButton);
+            if (viewAllProjectsButton != null) projectList.add(viewAllProjectsButton);
             projectList.setAlignItems(Alignment.CENTER);
         });
 
