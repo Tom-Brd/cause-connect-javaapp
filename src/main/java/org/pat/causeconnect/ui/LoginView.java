@@ -9,6 +9,7 @@ import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import org.pat.causeconnect.entity.Association;
 import org.pat.causeconnect.entity.AssociationContext;
@@ -120,6 +121,7 @@ public class LoginView extends VerticalLayout {
         associationSelect.setItemLabelGenerator(Association::getName);
         associationSelect.addValueChangeListener(e -> {
             AssociationContext.getInstance().setAssociation(e.getValue());
+            VaadinSession.getCurrent().setAttribute("association", e.getValue());
             logo.setSrc(e.getValue().getLogo());
         });
         return associationSelect;

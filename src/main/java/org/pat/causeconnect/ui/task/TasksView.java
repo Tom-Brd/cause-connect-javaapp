@@ -8,12 +8,12 @@ import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import org.pat.causeconnect.entity.task.Task;
+import org.pat.causeconnect.service.AssociationService;
 import org.pat.causeconnect.service.task.TaskService;
 import org.pat.causeconnect.ui.MainLayout;
 import org.pat.causeconnect.ui.component.CardComponent;
@@ -26,35 +26,13 @@ import java.util.stream.Collectors;
 @AnonymousAllowed
 @PageTitle("Mes Tâches")
 public class TasksView extends VerticalLayout {
-    public TasksView(TaskService taskService) {
+
+    public TasksView(TaskService taskService, AssociationService associationService) {
 
         setSizeFull();
-//        ArrayList<Task> tasks = taskService.getMyTasks();
 
         add(new H2("Mes tâches"));
 
-//        FlexLayout taskList = new FlexLayout();
-//        taskList.setWidthFull();
-//        taskList.setFlexWrap(FlexLayout.FlexWrap.WRAP);
-//
-//        List<Task> sortedTasks = tasks.stream()
-//                .sorted(Comparator.comparing(Task::getDeadline))
-//                .toList();
-//        sortedTasks.forEach(task -> {
-//            Date endTime = task.getDeadline();
-//            SimpleDateFormat formatter = new SimpleDateFormat("dd MMMM", Locale.FRENCH);
-//            CardComponent taskDiv = new CardComponent(task.getProject().getName() + " : " +task.getTitle(), "Échéance : " + formatter.format(endTime));
-//            ComponentEventListener<AttachEvent> listener = event -> {
-//                taskDiv.addClickListener(e -> {
-//                    getUI().ifPresent(ui -> ui.navigate(TaskView.class, task.getId()));
-//                });
-//            };
-//            taskDiv.addAttachListener(listener);
-//
-//            taskList.add(taskDiv);
-//        });
-//
-//        add(taskList);
         Map<String, List<Task>> taskByProject = taskService.getMyTasks().stream()
                 .sorted(Comparator.comparing(Task::getDeadline))
                 .collect(Collectors.groupingBy(task -> task.getProject().getName()));
@@ -78,7 +56,10 @@ public class TasksView extends VerticalLayout {
                 Date endTime = task.getDeadline();
                 SimpleDateFormat formatter = new SimpleDateFormat("dd MMMM", Locale.FRENCH);
                 CardComponent taskDiv = new CardComponent(task.getTitle(), "Échéance : " + formatter.format(endTime));
-                ComponentEventListener<AttachEvent> listener = event -> taskDiv.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate(TaskView.class, task.getId())));
+                ComponentEventListener<AttachEvent> listener = event -> taskDiv.addClickListener(e -> {
+                    TaskModal taskModal = new TaskModal(task, associationService, taskService);
+                    taskModal.open();
+                });
                 taskDiv.addAttachListener(listener);
 
                 taskList.add(taskDiv);
