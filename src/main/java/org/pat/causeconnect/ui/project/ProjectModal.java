@@ -81,7 +81,7 @@ private boolean validateFields(TextField titleField, TextArea descriptionField, 
     endDateField.setInvalid(endDateField.isEmpty());
 
     // if start after end date then invalid
-    if (startDateField.getValue().isAfter(endDateField.getValue())) {
+    if (!startDateField.isEmpty() && !endDateField.isEmpty() && startDateField.getValue().isAfter(endDateField.getValue())) {
         startDateField.setInvalid(true);
         endDateField.setInvalid(true);
         startDateField.setErrorMessage("La date de début doit être avant la date de fin");
