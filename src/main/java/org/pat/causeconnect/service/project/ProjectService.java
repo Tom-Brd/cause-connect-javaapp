@@ -27,7 +27,8 @@ public class ProjectService {
         headers.setBearerAuth(token);
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        ParameterizedTypeReference<ArrayList<Project>> responseType = new ParameterizedTypeReference<ArrayList<Project>>() {};
+        ParameterizedTypeReference<ArrayList<Project>> responseType = new ParameterizedTypeReference<ArrayList<Project>>() {
+        };
         ResponseEntity<ArrayList<Project>> response = restTemplate.exchange(url, HttpMethod.GET, entity, responseType);
 
         return response.getBody();
@@ -43,6 +44,20 @@ public class ProjectService {
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         ResponseEntity<Project> response = restTemplate.exchange(url, HttpMethod.GET, entity, Project.class);
+
+        return response.getBody();
+    }
+
+    public Project createProject(Project project) {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = baseUrl + "/projects";
+        String token = VaadinSession.getCurrent().getAttribute("token").toString();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        HttpEntity<Project> entity = new HttpEntity<>(project, headers);
+
+        ResponseEntity<Project> response = restTemplate.exchange(url, HttpMethod.POST, entity, Project.class);
 
         return response.getBody();
     }
