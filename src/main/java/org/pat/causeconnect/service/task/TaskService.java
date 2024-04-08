@@ -6,13 +6,13 @@ import org.pat.causeconnect.entity.task.Task;
 import org.pat.causeconnect.entity.task.TaskStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 @Component
@@ -82,5 +82,44 @@ public class TaskService {
                 responsibleUser,
                 taskResponse.getProject()
         );
+    }
+
+    public Task updateTask(Task task) {
+        System.out.println(task.getId());
+        System.out.println(task.getProject().getId());
+        RestTemplate restTemplate = new RestTemplate();
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+        restTemplate.setRequestFactory(requestFactory);
+
+        String url = baseUrl + "/tasks/" + task.getId();
+        String token = VaadinSession.getCurrent().getAttribute("token").toString();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        // convert Date to this format 2024-04-08T13:40:34.457Z
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT;
+        String formattedDate = formatter.format(task.getDeadline().toInstant().atOffset(ZoneOffset.UTC));
+        System.out.println(formattedDate);
+        TaskUpdateRequest taskRequest = new TaskUpdateRequest(
+                task.getTitle(),
+                task.getDescription(),
+                task.getStatus().name().toLowerCase(),
+                formattedDate,
+                task.getProject().getId(),
+                task.getResponsibleUser().getId()
+        );
+
+        HttpEntity<TaskUpdateRequest> entity = new HttpEntity<>(taskRequest, headers);
+
+        ResponseEntity<TaskResponse> response = restTemplate.exchange(url, HttpMethod.PATCH, entity, TaskResponse.class);
+
+        TaskResponse taskResponse = response.getBody();
+        if (taskResponse == null) {
+            return null;
+        }
+        TaskStatus status = TaskStatus.valueOf(taskResponse.getStatus().toUpperCase());
+
+        return getTask(taskResponse, status);
     }
 }
