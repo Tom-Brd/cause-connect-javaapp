@@ -1,6 +1,5 @@
 package org.pat.causeconnect.ui.task;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -11,6 +10,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import org.pat.causeconnect.entity.Project;
 import org.pat.causeconnect.entity.User;
 import org.pat.causeconnect.entity.task.Task;
 import org.pat.causeconnect.entity.task.TaskStatus;
@@ -24,7 +24,23 @@ import java.util.Arrays;
 
 public class TaskModal extends Dialog {
 
+    private final boolean isEditMode;
+    private final Task task;
+
+    public TaskModal(Project project, AssociationService associationService, TaskService taskService) {
+        this.task = new Task();
+        this.task.setProject(project);
+        this.isEditMode = false;
+        buildLayout(associationService, taskService, project);
+    }
+
     public TaskModal(Task task, AssociationService associationService, TaskService taskService) {
+        this.task = task;
+        this.isEditMode = true;
+        buildLayout(associationService, taskService, task.getProject());
+    }
+
+    private void buildLayout(AssociationService associationService, TaskService taskService, Project project) {
         setModal(true);
         setCloseOnEsc(true);
         setCloseOnOutsideClick(true);
@@ -33,7 +49,9 @@ public class TaskModal extends Dialog {
         VerticalLayout content = new VerticalLayout();
         content.setSizeFull();
 
-        H3 title = new H3("Modifier la tâche");
+        H3 title = new H3(isEditMode ?
+                "Modifier la tâche pour le projet " + task.getProject().getName() :
+                "Créer une nouvelle tâche pour le projet " + project.getName());
 
         HorizontalLayout titleAndUser = new HorizontalLayout();
         titleAndUser.setWidth("100%");
@@ -41,7 +59,7 @@ public class TaskModal extends Dialog {
         titleAndUser.setSpacing(true);
 
         TextField titleField = new TextField("Titre");
-        titleField.setValue(task.getTitle());
+        titleField.setValue(task.getTitle() != null ? task.getTitle() : "");
         titleField.setClearButtonVisible(true);
         titleField.setRequiredIndicatorVisible(true);
         titleField.setWidth("50%");
@@ -51,11 +69,10 @@ public class TaskModal extends Dialog {
         userComboBox.setItems(members.stream().map(User::getFullName).toList());
         userComboBox.setValue(task.getResponsibleUser() != null ? task.getResponsibleUser().getFullName() : null);
         userComboBox.setWidth("50%");
-
         titleAndUser.add(titleField, userComboBox);
 
         TextArea descriptionField = new TextArea("Description");
-        descriptionField.setValue(task.getDescription());
+        descriptionField.setValue(task.getDescription() != null ? task.getDescription() : "");
         descriptionField.setWidthFull();
         descriptionField.setRequired(true);
 
@@ -67,21 +84,34 @@ public class TaskModal extends Dialog {
         statusComboBox.setItems(Arrays.stream(TaskStatus.values()).map(Enum::name).toList());
         statusComboBox.setValue(task.getStatus() != null ? task.getStatus().name() : TaskStatus.TODO.name());
         statusComboBox.setWidth("25%");
+        if (!isEditMode) {
+            statusComboBox.setReadOnly(true);
+        }
 
-        Button saveButton = new Button("Enregistrer", e -> {
+        Button saveButton = new Button(isEditMode ? "Enregistrer" : "Créer", e -> {
             if (validateFields(titleField, userComboBox, descriptionField, dateTimePicker, statusComboBox)) {
                 task.setTitle(titleField.getValue());
                 task.setDescription(descriptionField.getValue());
                 task.setDeadline(java.util.Date.from(dateTimePicker.getValue().atZone(ZoneId.systemDefault()).toInstant()));
-                task.setStatus(TaskStatus.valueOf(statusComboBox.getValue()));
-                task.setResponsibleUser(members.stream().filter(user -> user.getFullName().equals(userComboBox.getValue())).findFirst().orElse(null));
 
-                Task updatedTask = taskService.updateTask(task);
-                // navigate to the same page to refresh the view
-                UI.getCurrent().navigate(TasksView.class);
-                if (updatedTask == null) {
-                    NotificationUtils.createNotification("Erreur lors de la sauvegarde des modifications", false).open();
-                    return;
+                if (isEditMode) {
+                    task.setStatus(TaskStatus.valueOf(statusComboBox.getValue()));
+                    Task updatedTask = taskService.updateTask(task);
+                    if (updatedTask == null) {
+                        NotificationUtils.createNotification("Erreur lors de la sauvegarde des modifications", false).open();
+                        return;
+                    }
+                } else {
+                    task.setResponsibleUser(members.stream().filter(user -> user.getFullName().equals(userComboBox.getValue())).findFirst().orElse(null));
+                    Task createdTask = taskService.createTask(task);
+                    if (createdTask == null) {
+                        NotificationUtils.createNotification("Erreur lors de la création de la tâche", false).open();
+                        return;
+                    }
+                    if (task.getResponsibleUser() != null) {
+                        taskService.assignTask(createdTask, task.getResponsibleUser());
+                    }
+                    close();
                 }
             }
 

@@ -12,6 +12,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import org.pat.causeconnect.entity.Project;
 import org.pat.causeconnect.entity.task.Task;
 import org.pat.causeconnect.service.AssociationService;
 import org.pat.causeconnect.service.task.TaskService;
@@ -33,16 +34,19 @@ public class TasksView extends VerticalLayout {
 
         add(new H2("Mes tâches"));
 
-        Map<String, List<Task>> taskByProject = taskService.getMyTasks().stream()
+        Map<Project, List<Task>> taskByProject = taskService.getMyTasks().stream()
                 .sorted(Comparator.comparing(Task::getDeadline))
-                .collect(Collectors.groupingBy(task -> task.getProject().getName()));
+                .collect(Collectors.groupingBy(Task::getProject));
 
-        taskByProject.forEach((projectName, tasks) -> {
+        taskByProject.forEach((project, tasks) -> {
             Details projectSection = new Details();
-            projectSection.setSummaryText(projectName);
+            projectSection.setSummaryText(project.getName());
             projectSection.setOpened(true);
 
-            Button createTaskButton = new Button("Créer une tâche");
+            Button createTaskButton = new Button("Créer une tâche", e -> {
+                TaskModal taskModal = new TaskModal(project, associationService, taskService);
+                taskModal.open();
+            });
             createTaskButton.setIcon(VaadinIcon.PLUS.create());
             createTaskButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             projectSection.add(createTaskButton);
