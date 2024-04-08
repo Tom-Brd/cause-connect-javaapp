@@ -68,10 +68,15 @@ public class TaskService {
     }
 
     private static Task getTask(TaskResponse taskResponse, TaskStatus status) {
-        User responsibleUser = new User();
-        responsibleUser.setId(taskResponse.getResponsibleUser().getId());
-        responsibleUser.setEmail(taskResponse.getResponsibleUser().getEmail());
-        responsibleUser.setFullName(taskResponse.getResponsibleUser().getFullName());
+        User responsibleUser;
+        if (taskResponse.getResponsibleUser() != null) {
+            responsibleUser = new User();
+            responsibleUser.setId(taskResponse.getResponsibleUser().getId());
+            responsibleUser.setEmail(taskResponse.getResponsibleUser().getEmail());
+            responsibleUser.setFullName(taskResponse.getResponsibleUser().getFullName());
+        } else {
+            responsibleUser = null;
+        }
 
         return new Task(
                 taskResponse.getId(),
@@ -121,5 +126,57 @@ public class TaskService {
         TaskStatus status = TaskStatus.valueOf(taskResponse.getStatus().toUpperCase());
 
         return getTask(taskResponse, status);
+    }
+
+    public Task createTask(Task task) {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+        restTemplate.setRequestFactory(requestFactory);
+
+        String url = baseUrl + "/projects/" + task.getProject().getId() + "/tasks";
+        String token = VaadinSession.getCurrent().getAttribute("token").toString();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        // convert Date to this format 2024-04-08T13:40:34.457Z
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT;
+        String formattedDate = formatter.format(task.getDeadline().toInstant().atOffset(ZoneOffset.UTC));
+        System.out.println(formattedDate);
+        TaskCreateRequest taskRequest = new TaskCreateRequest(
+                task.getTitle(),
+                task.getDescription(),
+                formattedDate
+        );
+
+        HttpEntity<TaskCreateRequest> entity = new HttpEntity<>(taskRequest, headers);
+
+        ResponseEntity<TaskResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, TaskResponse.class);
+
+        TaskResponse taskResponse = response.getBody();
+        if (taskResponse == null) {
+            return null;
+        }
+        TaskStatus status = TaskStatus.valueOf(taskResponse.getStatus().toUpperCase());
+
+        return getTask(taskResponse, status);
+    }
+
+    public void assignTask(Task task, User user) {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+        restTemplate.setRequestFactory(requestFactory);
+
+        String url = baseUrl + "/tasks/" + task.getId() + "/responsible-user";
+        String token = VaadinSession.getCurrent().getAttribute("token").toString();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        String body = "{\"userId\": \"" + user.getId() + "\"}";
+
+        HttpEntity<String> entity = new HttpEntity<>(body, headers);
+
+        restTemplate.exchange(url, HttpMethod.PATCH, entity, String.class);
     }
 }
