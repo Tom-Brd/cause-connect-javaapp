@@ -3,13 +3,13 @@ package org.pat.causeconnect.ui.project;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.dnd.DropTarget;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
-import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.PageTitle;
@@ -18,15 +18,15 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import org.pat.causeconnect.entity.task.Task;
 import org.pat.causeconnect.entity.task.TaskStatus;
 import org.pat.causeconnect.service.AssociationService;
-import org.pat.causeconnect.service.project.ProjectService;
 import org.pat.causeconnect.service.task.TaskService;
 import org.pat.causeconnect.ui.MainLayout;
-import org.pat.causeconnect.ui.component.CardComponent;
+import org.pat.causeconnect.ui.component.CardComponentDraggable;
 import org.pat.causeconnect.ui.task.TaskModal;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Route(value = "project", layout = MainLayout.class)
 @AnonymousAllowed
@@ -45,7 +45,7 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
 
     private String projectId;
 
-    public ProjectView(ProjectService projectService, TaskService taskService, AssociationService associationService) {
+    public ProjectView(TaskService taskService, AssociationService associationService) {
         this.taskService = taskService;
         this.associationService = associationService;
 
@@ -95,6 +95,10 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
         createStatusColumn(todoColumn, "TO DO", TaskStatus.TODO);
         createStatusColumn(inProgressColumn, "IN PROGRESS", TaskStatus.IN_PROGRESS);
         createStatusColumn(doneColumn, "DONE", TaskStatus.DONE);
+
+        makeColumnDropTarget(todoColumn, TaskStatus.TODO);
+        makeColumnDropTarget(inProgressColumn, TaskStatus.IN_PROGRESS);
+        makeColumnDropTarget(doneColumn, TaskStatus.DONE);
     }
 
     private void createStatusColumn(Div column, String title, TaskStatus status) {
@@ -105,20 +109,38 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
         column.add(new H3(title));
     }
 
+    private void makeColumnDropTarget(Div column, TaskStatus status) {
+        DropTarget.create(column).addDropListener(event -> {
+            Optional<Component> dragSourceComponent = event.getDragSourceComponent();
+            dragSourceComponent.ifPresent(card -> {
+                Div previousParent = (Div) card.getParent().get();
+                previousParent.remove(card);
+
+                column.add(card);
+
+                Task task = taskService.getTaskById(card.getId().get());
+                task.setStatus(status);
+                taskService.updateTask(task);
+            });
+        });
+    }
+
     private void loadTasks() {
         ArrayList<Task> tasks = taskService.getTasksByProjectId(projectId);
         tasks.forEach(this::addTaskToColumn);
     }
 
     private void addTaskToColumn(Task task) {
-        CardComponent card = new CardComponent(task.getTitle(), task.getDescription());
+        CardComponentDraggable card = new CardComponentDraggable(task.getTitle(), task.getDescription());
         ComponentEventListener<AttachEvent> listener = event -> card.addClickListener(e -> {
             TaskModal taskModal = new TaskModal(task, associationService, taskService);
             taskModal.open();
         });
         card.addAttachListener(listener);
+        card.setId(task.getId());
 
         Div column = getColumnForTaskStatus(task.getStatus());
+
         column.add(card);
     }
 
