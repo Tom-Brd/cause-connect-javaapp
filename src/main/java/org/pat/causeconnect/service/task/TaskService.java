@@ -1,6 +1,7 @@
 package org.pat.causeconnect.service.task;
 
 import com.vaadin.flow.server.VaadinSession;
+import org.pat.causeconnect.entity.Project;
 import org.pat.causeconnect.entity.User;
 import org.pat.causeconnect.entity.task.Task;
 import org.pat.causeconnect.entity.task.TaskStatus;
@@ -78,6 +79,18 @@ public class TaskService {
             responsibleUser = null;
         }
 
+        Project project;
+        if (taskResponse.getProject() != null) {
+            project = new Project();
+            project.setId(taskResponse.getProject().getId());
+            project.setName(taskResponse.getProject().getName());
+            project.setDescription(taskResponse.getProject().getDescription());
+            project.setStartTime(taskResponse.getProject().getStartTime());
+            project.setEndTime(taskResponse.getProject().getEndTime());
+        } else {
+            project = null;
+        }
+
         return new Task(
                 taskResponse.getId(),
                 taskResponse.getTitle(),
@@ -85,7 +98,7 @@ public class TaskService {
                 status,
                 taskResponse.getDeadline(),
                 responsibleUser,
-                taskResponse.getProject()
+                project
         );
     }
 
@@ -102,7 +115,7 @@ public class TaskService {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
         headers.setContentType(MediaType.APPLICATION_JSON);
-        // convert Date to this format 2024-04-08T13:40:34.457Z
+
         DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT;
         String formattedDate = formatter.format(task.getDeadline().toInstant().atOffset(ZoneOffset.UTC));
         System.out.println(formattedDate);
@@ -178,5 +191,33 @@ public class TaskService {
         HttpEntity<String> entity = new HttpEntity<>(body, headers);
 
         restTemplate.exchange(url, HttpMethod.PATCH, entity, String.class);
+    }
+
+    public ArrayList<Task> getTasksByProjectId(String projectId) {
+        RestTemplate restTemplate = new RestTemplate();
+//        String url = baseUrl + "/projects/" + projectId + "/tasks";
+        String url = baseUrl + "/tasks/me";
+        String token = VaadinSession.getCurrent().getAttribute("token").toString();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<ArrayList<TaskResponse>> response = restTemplate.exchange(url, HttpMethod.GET, entity, new ParameterizedTypeReference<>() {
+        });
+
+        ArrayList<TaskResponse> taskResponses = response.getBody();
+
+        ArrayList<Task> tasks = new ArrayList<>();
+        if (taskResponses != null) {
+            for (TaskResponse taskResponse : taskResponses) {
+                TaskStatus status = TaskStatus.valueOf(taskResponse.getStatus().toUpperCase());
+
+                Task task = getTask(taskResponse, status);
+
+                tasks.add(task);
+            }
+        }
+        return tasks;
     }
 }
