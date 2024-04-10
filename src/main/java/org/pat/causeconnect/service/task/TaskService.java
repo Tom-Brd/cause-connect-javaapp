@@ -193,10 +193,9 @@ public class TaskService {
         restTemplate.exchange(url, HttpMethod.PATCH, entity, String.class);
     }
 
-    public ArrayList<Task> getTasksByProjectId(String projectId) {
+    public ArrayList<Task> getTasksByProject(Project project) {
         RestTemplate restTemplate = new RestTemplate();
-//        String url = baseUrl + "/projects/" + projectId + "/tasks";
-        String url = baseUrl + "/tasks/me";
+        String url = baseUrl + "/projects/" + project.getId() + "/tasks";
         String token = VaadinSession.getCurrent().getAttribute("token").toString();
 
         HttpHeaders headers = new HttpHeaders();
@@ -214,6 +213,7 @@ public class TaskService {
                 TaskStatus status = TaskStatus.valueOf(taskResponse.getStatus().toUpperCase());
 
                 Task task = getTask(taskResponse, status);
+                task.setProject(project);
 
                 tasks.add(task);
             }
