@@ -5,6 +5,8 @@ import org.pat.causeconnect.entity.Project;
 import org.pat.causeconnect.entity.User;
 import org.pat.causeconnect.entity.task.Task;
 import org.pat.causeconnect.entity.task.TaskStatus;
+import org.pat.causeconnect.service.InternetCheckService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -21,7 +23,14 @@ public class TaskService {
     @Value("${base.url}")
     private String baseUrl;
 
+    @Autowired
+    private InternetCheckService internetCheckService;
+
     public ArrayList<Task> getMyTasks() {
+        if (!internetCheckService.hasInternetConnection()) {
+            return new ArrayList<>();
+        }
+
         RestTemplate restTemplate = new RestTemplate();
         String url = baseUrl + "/tasks/me";
         String token = VaadinSession.getCurrent().getAttribute("token").toString();
@@ -49,6 +58,10 @@ public class TaskService {
     }
 
     public Task getTaskById(String taskId) {
+        if (!internetCheckService.hasInternetConnection()) {
+            return null;
+        }
+
         RestTemplate restTemplate = new RestTemplate();
         String url = baseUrl + "/tasks/" + taskId;
         String token = VaadinSession.getCurrent().getAttribute("token").toString();
@@ -103,6 +116,10 @@ public class TaskService {
     }
 
     public Task updateTask(Task task) {
+        if (!internetCheckService.hasInternetConnection()) {
+            return null;
+        }
+
         System.out.println(task.getId());
         System.out.println(task.getProject().getId());
         RestTemplate restTemplate = new RestTemplate();
@@ -142,6 +159,10 @@ public class TaskService {
     }
 
     public Task createTask(Task task) {
+        if (!internetCheckService.hasInternetConnection()) {
+            return null;
+        }
+
         RestTemplate restTemplate = new RestTemplate();
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
         restTemplate.setRequestFactory(requestFactory);
@@ -176,6 +197,10 @@ public class TaskService {
     }
 
     public void assignTask(Task task, User user) {
+        if (!internetCheckService.hasInternetConnection()) {
+            return;
+        }
+
         RestTemplate restTemplate = new RestTemplate();
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
         restTemplate.setRequestFactory(requestFactory);
@@ -194,6 +219,10 @@ public class TaskService {
     }
 
     public ArrayList<Task> getTasksByProject(Project project) {
+        if (!internetCheckService.hasInternetConnection()) {
+            return new ArrayList<>();
+        }
+
         RestTemplate restTemplate = new RestTemplate();
         String url = baseUrl + "/projects/" + project.getId() + "/tasks";
         String token = VaadinSession.getCurrent().getAttribute("token").toString();

@@ -1,8 +1,8 @@
 package org.pat.causeconnect.service;
 
+import com.vaadin.flow.server.VaadinSession;
 import org.pat.causeconnect.entity.User;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -10,7 +10,7 @@ import java.util.Optional;
 @Component
 public class SecurityService {
     public Optional<User> getAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = VaadinSession.getCurrent().getAttribute(Authentication.class);
 
         if (authentication == null || !authentication.isAuthenticated() || !(authentication.getPrincipal() instanceof User)) {
             return Optional.empty();
@@ -20,6 +20,6 @@ public class SecurityService {
     }
 
     public void logout() {
-        SecurityContextHolder.clearContext();
+        VaadinSession.getCurrent().getSession().invalidate();
     }
 }

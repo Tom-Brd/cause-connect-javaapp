@@ -4,6 +4,7 @@ import com.vaadin.flow.server.VaadinSession;
 import org.pat.causeconnect.entity.Association;
 import org.pat.causeconnect.entity.User;
 import org.pat.causeconnect.service.user.UserDetailResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -23,7 +24,14 @@ public class AssociationService {
     @Value("${base.url}")
     private String baseUrl;
 
+    @Autowired
+    private InternetCheckService internetCheckService;
+
     public Association[] getAssociations() {
+        if (!internetCheckService.hasInternetConnection()) {
+            return null;
+        }
+
         RestTemplate restTemplate = new RestTemplate();
         String url = baseUrl + "/associations";
 
@@ -31,6 +39,10 @@ public class AssociationService {
     }
 
     public Association getAssociation(String id) {
+        if (!internetCheckService.hasInternetConnection()) {
+            return null;
+        }
+
         RestTemplate restTemplate = new RestTemplate();
         String url = baseUrl + "/associations/" + id;
 
@@ -38,6 +50,10 @@ public class AssociationService {
     }
 
     public ArrayList<User> getMembers() {
+        if (!internetCheckService.hasInternetConnection()) {
+            return null;
+        }
+        
         RestTemplate restTemplate = new RestTemplate();
         String url = baseUrl + "/users";
         String token = VaadinSession.getCurrent().getAttribute("token").toString();

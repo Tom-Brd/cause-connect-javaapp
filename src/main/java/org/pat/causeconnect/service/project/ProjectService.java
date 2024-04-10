@@ -2,6 +2,8 @@ package org.pat.causeconnect.service.project;
 
 import com.vaadin.flow.server.VaadinSession;
 import org.pat.causeconnect.entity.Project;
+import org.pat.causeconnect.service.InternetCheckService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -9,6 +11,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 @Component
@@ -16,7 +19,14 @@ public class ProjectService {
     @Value("${base.url}")
     private String baseUrl;
 
+    @Autowired
+    private InternetCheckService internetCheckService;
+
     public ArrayList<Project> getMyProjects() {
+        if (!internetCheckService.hasInternetConnection()) {
+            return new ArrayList<>();
+        }
+
         RestTemplate restTemplate = new RestTemplate();
         String url = baseUrl + "/projects/me";
         String token = VaadinSession.getCurrent().getAttribute("token").toString();
@@ -33,6 +43,10 @@ public class ProjectService {
     }
 
     public Project getProjectById(String projectId) {
+        if (!internetCheckService.hasInternetConnection()) {
+            return null;
+        }
+
         RestTemplate restTemplate = new RestTemplate();
         String url = baseUrl + "/projects/" + projectId;
         String token = VaadinSession.getCurrent().getAttribute("token").toString();
@@ -47,6 +61,10 @@ public class ProjectService {
     }
 
     public Project createProject(Project project) {
+        if (!internetCheckService.hasInternetConnection()) {
+            return null;
+        }
+
         RestTemplate restTemplate = new RestTemplate();
         String url = baseUrl + "/projects";
         String token = VaadinSession.getCurrent().getAttribute("token").toString();
@@ -61,6 +79,10 @@ public class ProjectService {
     }
 
     public Project updateProject(Project project) {
+        if (!internetCheckService.hasInternetConnection()) {
+            return null;
+        }
+
         RestTemplate restTemplate = new RestTemplate();
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
         restTemplate.setRequestFactory(requestFactory);
