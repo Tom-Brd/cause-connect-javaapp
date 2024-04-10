@@ -4,10 +4,8 @@ import com.vaadin.flow.server.VaadinSession;
 import org.pat.causeconnect.entity.Project;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -58,6 +56,24 @@ public class ProjectService {
         HttpEntity<Project> entity = new HttpEntity<>(project, headers);
 
         ResponseEntity<Project> response = restTemplate.exchange(url, HttpMethod.POST, entity, Project.class);
+
+        return response.getBody();
+    }
+
+    public Project updateProject(Project project) {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+        restTemplate.setRequestFactory(requestFactory);
+
+        String url = baseUrl + "/projects/" + project.getId();
+        String token = VaadinSession.getCurrent().getAttribute("token").toString();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Project> entity = new HttpEntity<>(project, headers);
+
+        ResponseEntity<Project> response = restTemplate.exchange(url, HttpMethod.PATCH, entity, Project.class);
 
         return response.getBody();
     }
