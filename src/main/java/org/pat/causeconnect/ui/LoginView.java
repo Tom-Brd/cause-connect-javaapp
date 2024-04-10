@@ -18,7 +18,6 @@ import org.pat.causeconnect.service.auth.AuthenticationService;
 import org.pat.causeconnect.ui.utils.NotificationUtils;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -88,7 +87,7 @@ public class LoginView extends VerticalLayout {
             if (isValid.get()) {
                 try {
                     Authentication authentication = authenticationService.authenticate(emailField.getValue(), passwordField.getValue(), associationSelect.getValue().getId());
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    VaadinSession.getCurrent().setAttribute(Authentication.class, authentication);
                     UI.getCurrent().navigate("");
                 } catch (BadCredentialsException ex) {
                     emailField.setErrorMessage("Email ou mot de passe incorrect.");
@@ -115,15 +114,21 @@ public class LoginView extends VerticalLayout {
     private Select<Association> createAssociationSelect(AssociationService associationService, Image logo) {
         Association[] associations = associationService.getAssociations();
         Select<Association> associationSelect = new Select<>();
+
+        if (associations != null) {
+            associationSelect.setItems(associations);
+            associationSelect.setItemLabelGenerator(Association::getName);
+            associationSelect.addValueChangeListener(e -> {
+                AssociationContext.getInstance().setAssociation(e.getValue());
+                VaadinSession.getCurrent().setAttribute("association", e.getValue());
+                logo.setSrc(e.getValue().getLogo());
+            });
+        } else {
+            NotificationUtils.createNotification("Aucune association n'a été trouvée.", false).open();
+        }
         associationSelect.setWidth("300px");
         associationSelect.setLabel("Association");
-        associationSelect.setItems(associations);
-        associationSelect.setItemLabelGenerator(Association::getName);
-        associationSelect.addValueChangeListener(e -> {
-            AssociationContext.getInstance().setAssociation(e.getValue());
-            VaadinSession.getCurrent().setAttribute("association", e.getValue());
-            logo.setSrc(e.getValue().getLogo());
-        });
+
         return associationSelect;
     }
 

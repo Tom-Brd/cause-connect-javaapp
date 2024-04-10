@@ -17,6 +17,7 @@ import org.pat.causeconnect.entity.task.TaskStatus;
 import org.pat.causeconnect.service.project.ProjectService;
 import org.pat.causeconnect.service.task.TaskService;
 import org.pat.causeconnect.ui.component.CardComponent;
+import org.pat.causeconnect.ui.project.ProjectModal;
 import org.pat.causeconnect.ui.project.ProjectView;
 import org.pat.causeconnect.ui.project.ProjectsView;
 import org.pat.causeconnect.ui.task.TaskView;
@@ -34,17 +35,17 @@ public class DashboardView extends VerticalLayout {
         ArrayList<Project> projects = projectService.getMyProjects();
         ArrayList<Task> tasks = taskService.getMyTasks();
 
-        createProjectsLayout(projects);
+        createProjectsLayout(projects, projectService);
         createTasksLayout(tasks);
     }
 
     private void createTasksLayout(ArrayList<Task> tasks) {
         add(new H2("Mes Tâches"));
 
-        Button createTaskButton = new Button("Créer une tâche");
-        createTaskButton.setIcon(VaadinIcon.PLUS.create());
-        createTaskButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        add(createTaskButton);
+//        Button createTaskButton = new Button("Créer une tâche");
+//        createTaskButton.setIcon(VaadinIcon.PLUS.create());
+//        createTaskButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+//        add(createTaskButton);
 
         Button viewAllTasksButton;
         if (tasks.size() > 3) {
@@ -80,10 +81,13 @@ public class DashboardView extends VerticalLayout {
         add(taskList);
     }
 
-    private void createProjectsLayout(ArrayList<Project> projects) {
+    private void createProjectsLayout(ArrayList<Project> projects, ProjectService projectService) {
         add(new H2("Mes Projets"));
 
-        Button createProjectButton = new Button("Créer un projet");
+        Button createProjectButton = new Button("Créer un projet", e -> {
+            ProjectModal projectModal = new ProjectModal(projectService);
+            projectModal.open();
+        });
         createProjectButton.setIcon(VaadinIcon.PLUS.create());
         createProjectButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         add(createProjectButton);

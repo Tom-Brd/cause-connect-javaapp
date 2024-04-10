@@ -93,6 +93,7 @@ public class TaskModal extends Dialog {
                 task.setTitle(titleField.getValue());
                 task.setDescription(descriptionField.getValue());
                 task.setDeadline(java.util.Date.from(dateTimePicker.getValue().atZone(ZoneId.systemDefault()).toInstant()));
+                task.setResponsibleUser(members.stream().filter(user -> user.getFullName().equals(userComboBox.getValue())).findFirst().orElse(null));
 
                 if (isEditMode) {
                     task.setStatus(TaskStatus.valueOf(statusComboBox.getValue()));
@@ -102,7 +103,6 @@ public class TaskModal extends Dialog {
                         return;
                     }
                 } else {
-                    task.setResponsibleUser(members.stream().filter(user -> user.getFullName().equals(userComboBox.getValue())).findFirst().orElse(null));
                     Task createdTask = taskService.createTask(task);
                     if (createdTask == null) {
                         NotificationUtils.createNotification("Erreur lors de la création de la tâche", false).open();
