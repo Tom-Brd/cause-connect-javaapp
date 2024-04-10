@@ -11,6 +11,7 @@ import com.vaadin.flow.component.dnd.DropTarget;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
@@ -96,6 +97,15 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
     private void buildKanbanView() {
         kanbanView.removeAll();
 
+        Button createTaskButton = new Button("Créer une tâche", e -> {
+            TaskModal taskModal = new TaskModal(project, associationService, taskService);
+            taskModal.open();
+        });
+        createTaskButton.setIcon(VaadinIcon.PLUS.create());
+        createTaskButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+
+        kanbanView.add(createTaskButton);
+
         setUpKanbanColumns();
 
         HorizontalLayout columns = new HorizontalLayout(todoColumn, inProgressColumn, doneColumn);
@@ -137,6 +147,7 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
                 task.setStatus(status);
                 taskService.updateTask(task);
             });
+            NotificationUtils.createNotification("Tâche déplacée au statut " + status, true).open();
         });
     }
 
