@@ -1,5 +1,6 @@
 package org.pat.causeconnect.ui;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
@@ -14,17 +15,15 @@ import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import org.pat.causeconnect.entity.Project;
 import org.pat.causeconnect.entity.User;
 import org.pat.causeconnect.service.SecurityService;
-import org.pat.causeconnect.service.project.ProjectService;
 import org.pat.causeconnect.ui.project.ProjectsView;
 import org.pat.causeconnect.ui.task.TasksView;
-import org.vaadin.lineawesome.LineAwesomeIcon;
+import org.springframework.security.core.Authentication;
 
-import java.util.ArrayList;
 import java.util.Optional;
 
 public class MainLayout extends AppLayout implements BeforeEnterObserver {
@@ -43,8 +42,10 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
 
         if (userOptional.isPresent()) {
             user = userOptional.get();
+            VaadinSession.getCurrent().setAttribute(User.class, user);
         } else {
-            getUI().ifPresent(ui -> ui.navigate(LoginView.class));
+            securityService.logout();
+            UI.getCurrent().navigate(LoginView.class);
             return;
         }
 
@@ -138,9 +139,9 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
     }
 
     @Override
-    public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
-        if (user == null) {
-            beforeEnterEvent.rerouteTo(LoginView.class);
+    public void beforeEnter(BeforeEnterEvent event) {
+        if (VaadinSession.getCurrent().getAttribute(Authentication.class) == null) {
+            event.forwardToUrl("login");
         }
     }
 }
