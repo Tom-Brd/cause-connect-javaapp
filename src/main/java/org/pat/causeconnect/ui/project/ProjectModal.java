@@ -74,21 +74,20 @@ public class ProjectModal extends Dialog {
         add(content);
 }
 
-private boolean validateFields(TextField titleField, TextArea descriptionField, DatePicker startDateField, DatePicker endDateField) {
-    titleField.setInvalid(titleField.isEmpty());
-    descriptionField.setInvalid(descriptionField.isEmpty());
-    startDateField.setInvalid(startDateField.isEmpty());
-    endDateField.setInvalid(endDateField.isEmpty());
+    private boolean validateFields(TextField titleField, TextArea descriptionField, DatePicker startDateField, DatePicker endDateField) {
+        titleField.setInvalid(titleField.isEmpty());
+        descriptionField.setInvalid(descriptionField.isEmpty());
+        startDateField.setInvalid(startDateField.isEmpty());
+        endDateField.setInvalid(endDateField.isEmpty());
 
-    // if start after end date then invalid
-    if (!startDateField.isEmpty() && !endDateField.isEmpty() && startDateField.getValue().isAfter(endDateField.getValue())) {
-        startDateField.setInvalid(true);
-        endDateField.setInvalid(true);
-        startDateField.setErrorMessage("La date de début doit être avant la date de fin");
-        endDateField.setErrorMessage("La date de fin doit être après la date de début");
-        NotificationUtils.createNotification("La date de début doit être avant la date de fin", false).open();
+        if (!startDateField.isEmpty() && !endDateField.isEmpty() && startDateField.getValue().isAfter(endDateField.getValue())) {
+            startDateField.setInvalid(true);
+            endDateField.setInvalid(true);
+            startDateField.setErrorMessage("La date de début doit être avant la date de fin");
+            endDateField.setErrorMessage("La date de fin doit être après la date de début");
+            NotificationUtils.createNotification("La date de début doit être avant la date de fin", false).open();
+        }
+
+        return !titleField.isInvalid() && !descriptionField.isInvalid() && !startDateField.isInvalid() && !endDateField.isInvalid();
     }
-
-    return !titleField.isInvalid() && !descriptionField.isInvalid() && !startDateField.isInvalid() && !endDateField.isInvalid();
-}
 }
