@@ -13,7 +13,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
-import java.util.Objects;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class ProjectService {
@@ -56,7 +57,15 @@ public class ProjectService {
 
     public Project getProjectById(String projectId) {
         if (!internetCheckService.hasInternetConnection()) {
-            return null;
+            Map<String, ProjectByIdResponse> projectsById = (Map<String, ProjectByIdResponse>)
+                    VaadinSession.getCurrent().getAttribute("projectsById");
+
+            if (projectsById == null || !projectsById.containsKey(projectId)) {
+                NotificationUtils.createNotification("Pas de connexion Internet, aucune information n'a pu être chargée", false);
+                return null;
+            }
+
+            return projectsById.get(projectId).getProject();
         }
 
         RestTemplate restTemplate = new RestTemplate();
@@ -68,6 +77,18 @@ public class ProjectService {
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         ResponseEntity<Project> response = restTemplate.exchange(url, HttpMethod.GET, entity, Project.class);
+
+        ProjectByIdResponse projectByIdResponse = new ProjectByIdResponse(response.getBody());
+
+        Map<String, ProjectByIdResponse> projectsById = (Map<String, ProjectByIdResponse>) VaadinSession.getCurrent().getAttribute("projectsById");
+        if (projectsById == null) {
+            projectsById = new HashMap<>();
+        }
+
+        projectsById.put(projectId, projectByIdResponse);
+        VaadinSession.getCurrent().setAttribute("projectsById", projectsById);
+
+//        VaadinSession.getCurrent().setAttribute(ProjectByIdResponse.class, projectByIdResponse);
 
         return response.getBody();
     }

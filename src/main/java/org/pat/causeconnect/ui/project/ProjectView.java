@@ -90,6 +90,11 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
         this.projectId = projectId;
         this.project = projectService.getProjectById(projectId);
 
+        if (project == null) {
+            NotificationUtils.createNotification("Le projet n'a pas pu être chargé", false).open();
+            return;
+        }
+
         buildKanbanView();
         buildConfigurationView();
     }
@@ -239,9 +244,9 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
         Project updatedProject = projectService.updateProject(project);
 
         if (updatedProject == null) {
-            NotificationUtils.createNotification("An error occurred while updating the project", false).open();
+            NotificationUtils.createNotification("Une erreur est survenue lors de la mise à jour du projet", false).open();
         } else {
-            NotificationUtils.createNotification("The project has been successfully updated!", true).open();
+            NotificationUtils.createNotification("Le projet a bien été mis à jour", true).open();
         }
     }
 
