@@ -3,6 +3,7 @@ package org.pat.causeconnect.service.project;
 import com.vaadin.flow.server.VaadinSession;
 import org.pat.causeconnect.entity.Project;
 import org.pat.causeconnect.service.InternetCheckService;
+import org.pat.causeconnect.ui.utils.NotificationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -11,8 +12,8 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Objects;
 
 @Component
 public class ProjectService {
@@ -24,7 +25,14 @@ public class ProjectService {
 
     public ArrayList<Project> getMyProjects() {
         if (!internetCheckService.hasInternetConnection()) {
-            return new ArrayList<>();
+            MyProjectsResponse myProjectsResponse = VaadinSession.getCurrent().getAttribute(MyProjectsResponse.class);
+
+            if (myProjectsResponse == null) {
+                NotificationUtils.createNotification("Pas de connexion Internet, aucune information n'a pu être chargée", false);
+                return null;
+            }
+
+            return myProjectsResponse.getMyProjects();
         }
 
         RestTemplate restTemplate = new RestTemplate();
@@ -35,11 +43,15 @@ public class ProjectService {
         headers.setBearerAuth(token);
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        ParameterizedTypeReference<ArrayList<Project>> responseType = new ParameterizedTypeReference<ArrayList<Project>>() {
+        ParameterizedTypeReference<ArrayList<Project>> responseType = new ParameterizedTypeReference<>() {
         };
         ResponseEntity<ArrayList<Project>> response = restTemplate.exchange(url, HttpMethod.GET, entity, responseType);
 
-        return response.getBody();
+        MyProjectsResponse myProjectsResponse = new MyProjectsResponse(response.getBody());
+
+        VaadinSession.getCurrent().setAttribute(MyProjectsResponse.class, myProjectsResponse);
+
+        return myProjectsResponse.getMyProjects();
     }
 
     public Project getProjectById(String projectId) {
