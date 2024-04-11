@@ -29,7 +29,7 @@ public class ProjectService {
             MyProjectsResponse myProjectsResponse = VaadinSession.getCurrent().getAttribute(MyProjectsResponse.class);
 
             if (myProjectsResponse == null) {
-                NotificationUtils.createNotification("Pas de connexion Internet, aucune information n'a pu être chargée", false);
+                NotificationUtils.createNotification("Pas de connexion Internet, aucune information n'a pu être chargée", false).open();
                 return null;
             }
 
@@ -61,7 +61,7 @@ public class ProjectService {
                     VaadinSession.getCurrent().getAttribute("projectsById");
 
             if (projectsById == null || !projectsById.containsKey(projectId)) {
-                NotificationUtils.createNotification("Pas de connexion Internet, aucune information n'a pu être chargée", false);
+                NotificationUtils.createNotification("Pas de connexion Internet, aucune information n'a pu être chargée", false).open();
                 return null;
             }
 
@@ -87,8 +87,6 @@ public class ProjectService {
 
         projectsById.put(projectId, projectByIdResponse);
         VaadinSession.getCurrent().setAttribute("projectsById", projectsById);
-
-//        VaadinSession.getCurrent().setAttribute(ProjectByIdResponse.class, projectByIdResponse);
 
         return response.getBody();
     }

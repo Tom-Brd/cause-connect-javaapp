@@ -123,8 +123,6 @@ public class LoginView extends VerticalLayout {
                 VaadinSession.getCurrent().setAttribute("association", e.getValue());
                 logo.setSrc(e.getValue().getLogo());
             });
-        } else {
-            NotificationUtils.createNotification("Aucune association n'a été trouvée.", false).open();
         }
         associationSelect.setWidth("300px");
         associationSelect.setLabel("Association");

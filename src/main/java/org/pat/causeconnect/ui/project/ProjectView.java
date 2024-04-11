@@ -91,7 +91,6 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
         this.project = projectService.getProjectById(projectId);
 
         if (project == null) {
-            NotificationUtils.createNotification("Le projet n'a pas pu être chargé", false).open();
             return;
         }
 
@@ -143,16 +142,24 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
         DropTarget.create(column).addDropListener(event -> {
             Optional<Component> dragSourceComponent = event.getDragSourceComponent();
             dragSourceComponent.ifPresent(card -> {
+                Task task = taskService.getTaskById(card.getId().get());
+                if (task == null) {
+                    return;
+                }
+
+                task.setStatus(status);
+
+                Task updatedTask = taskService.updateTask(task);
+                if (updatedTask == null) {
+                    return;
+                }
+
                 Div previousParent = (Div) card.getParent().get();
                 previousParent.remove(card);
 
                 column.add(card);
-
-                Task task = taskService.getTaskById(card.getId().get());
-                task.setStatus(status);
-                taskService.updateTask(task);
+                NotificationUtils.createNotification("Tâche déplacée au statut " + status, true).open();
             });
-            NotificationUtils.createNotification("Tâche déplacée au statut " + status, true).open();
         });
     }
 

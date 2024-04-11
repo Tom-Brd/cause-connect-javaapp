@@ -6,6 +6,8 @@ import org.pat.causeconnect.entity.User;
 import org.pat.causeconnect.entity.task.Task;
 import org.pat.causeconnect.entity.task.TaskStatus;
 import org.pat.causeconnect.service.InternetCheckService;
+import org.pat.causeconnect.service.project.ProjectByIdResponse;
+import org.pat.causeconnect.ui.utils.NotificationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -17,6 +19,8 @@ import org.springframework.web.client.RestTemplate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class TaskService {
@@ -28,7 +32,14 @@ public class TaskService {
 
     public ArrayList<Task> getMyTasks() {
         if (!internetCheckService.hasInternetConnection()) {
-            return new ArrayList<>();
+            MyTasksResponse myTasksResponse = VaadinSession.getCurrent().getAttribute(MyTasksResponse.class);
+
+            if (myTasksResponse == null) {
+                NotificationUtils.createNotification("Pas de connexion Internet, aucune information n'a pu être chargée", false).open();
+                return null;
+            }
+
+            return myTasksResponse.getTaskResponses();
         }
 
         RestTemplate restTemplate = new RestTemplate();
@@ -54,12 +65,24 @@ public class TaskService {
                 tasks.add(task);
             }
         }
+
+        MyTasksResponse myTasksResponse = new MyTasksResponse(tasks);
+        VaadinSession.getCurrent().setAttribute(MyTasksResponse.class, myTasksResponse);
+
         return tasks;
     }
 
     public Task getTaskById(String taskId) {
         if (!internetCheckService.hasInternetConnection()) {
-            return null;
+            Map<String, Task> tasksById = (Map<String, Task>)
+                    VaadinSession.getCurrent().getAttribute("tasksById");
+
+            if (tasksById == null || !tasksById.containsKey(taskId)) {
+                NotificationUtils.createNotification("Pas de connexion Internet, aucune information n'a pu être chargée", false).open();
+                return null;
+            }
+
+            return tasksById.get(taskId);
         }
 
         RestTemplate restTemplate = new RestTemplate();
@@ -78,7 +101,16 @@ public class TaskService {
         }
         TaskStatus status = TaskStatus.valueOf(taskResponse.getStatus().toUpperCase());
 
-        return getTask(taskResponse, status);
+        Task task = getTask(taskResponse, status);
+        Map<String, Task> tasksById = (Map<String, Task>) VaadinSession.getCurrent().getAttribute("tasksById");
+        if (tasksById == null) {
+            tasksById = new HashMap<>();
+        }
+
+        tasksById.put(taskId, task);
+        VaadinSession.getCurrent().setAttribute("tasksById", tasksById);
+
+        return task;
     }
 
     private static Task getTask(TaskResponse taskResponse, TaskStatus status) {
@@ -117,6 +149,7 @@ public class TaskService {
 
     public Task updateTask(Task task) {
         if (!internetCheckService.hasInternetConnection()) {
+            NotificationUtils.createNotification("Pas de connexion Internet - Les modifications n'ont pas été effectuées", false).open();
             return null;
         }
 
@@ -151,6 +184,7 @@ public class TaskService {
 
         TaskResponse taskResponse = response.getBody();
         if (taskResponse == null) {
+            NotificationUtils.createNotification("Erreur lors de la sauvegarde des modifications", false).open();
             return null;
         }
         TaskStatus status = TaskStatus.valueOf(taskResponse.getStatus().toUpperCase());
@@ -160,6 +194,7 @@ public class TaskService {
 
     public Task createTask(Task task) {
         if (!internetCheckService.hasInternetConnection()) {
+            NotificationUtils.createNotification("Pas de connexion Internet - La tâche n'a pas pu être créée", false).open();
             return null;
         }
 
@@ -189,6 +224,7 @@ public class TaskService {
 
         TaskResponse taskResponse = response.getBody();
         if (taskResponse == null) {
+            NotificationUtils.createNotification("Erreur lors de la création de la tâche", false).open();
             return null;
         }
         TaskStatus status = TaskStatus.valueOf(taskResponse.getStatus().toUpperCase());
@@ -198,6 +234,7 @@ public class TaskService {
 
     public void assignTask(Task task, User user) {
         if (!internetCheckService.hasInternetConnection()) {
+            NotificationUtils.createNotification("Pas de connexion internet - la tâche n'a pas pu être assignée", false).open();
             return;
         }
 
@@ -220,7 +257,15 @@ public class TaskService {
 
     public ArrayList<Task> getTasksByProject(Project project) {
         if (!internetCheckService.hasInternetConnection()) {
-            return new ArrayList<>();
+            Map<Project, ArrayList<Task>> tasksByProject = (Map<Project, ArrayList<Task>>)
+                    VaadinSession.getCurrent().getAttribute("tasksByProject");
+
+            if (tasksByProject == null || !tasksByProject.containsKey(project)) {
+                NotificationUtils.createNotification("Pas de connexion Internet, aucune information n'a pu être chargée", false).open();
+                return null;
+            }
+
+            return tasksByProject.get(project);
         }
 
         RestTemplate restTemplate = new RestTemplate();
@@ -247,6 +292,15 @@ public class TaskService {
                 tasks.add(task);
             }
         }
+
+        Map<Project, ArrayList<Task>> tasksByProject = (Map<Project, ArrayList<Task>>) VaadinSession.getCurrent().getAttribute("tasksByProject");
+        if (tasksByProject == null) {
+            tasksByProject = new HashMap<>();
+        }
+
+        tasksByProject.put(project, tasks);
+        VaadinSession.getCurrent().setAttribute("tasksByProject", tasksByProject);
+
         return tasks;
     }
 }

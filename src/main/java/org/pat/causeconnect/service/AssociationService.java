@@ -4,6 +4,7 @@ import com.vaadin.flow.server.VaadinSession;
 import org.pat.causeconnect.entity.Association;
 import org.pat.causeconnect.entity.User;
 import org.pat.causeconnect.service.user.UserDetailResponse;
+import org.pat.causeconnect.ui.utils.NotificationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -29,6 +30,7 @@ public class AssociationService {
 
     public Association[] getAssociations() {
         if (!internetCheckService.hasInternetConnection()) {
+            NotificationUtils.createNotification("Pas de connexion Internet - Impossible de se connecter", false).open();
             return null;
         }
 
@@ -51,7 +53,8 @@ public class AssociationService {
 
     public ArrayList<User> getMembers() {
         if (!internetCheckService.hasInternetConnection()) {
-            return null;
+            NotificationUtils.createNotification("Pas de connexion Internet - Aucun membre de l'association récupéré", false);
+            return new ArrayList<>();
         }
         
         RestTemplate restTemplate = new RestTemplate();
