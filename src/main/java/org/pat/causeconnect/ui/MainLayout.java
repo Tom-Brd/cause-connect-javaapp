@@ -4,11 +4,15 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
@@ -61,7 +65,23 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         viewTitle = new H2();
         viewTitle.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
 
-        addToNavbar(true, toggle, viewTitle);
+        Div spacer = new Div();
+        spacer.getStyle().set("flex-grow", "1");
+
+        Button closeButton = new Button("Quitter", e -> securityService.shutdown());
+        closeButton.setIcon(VaadinIcon.ARROW_RIGHT.create());
+        closeButton.setIconAfterText(true);
+        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        closeButton.addClassName("leave-button");
+
+        HorizontalLayout headerLayout = new HorizontalLayout();
+        headerLayout.setWidthFull();
+        headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        headerLayout.add(toggle, viewTitle, spacer, closeButton);
+        headerLayout.setFlexGrow(1, spacer);
+
+        addToNavbar(true, headerLayout);
     }
 
     private void createDrawer() {

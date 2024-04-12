@@ -4,6 +4,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.EmailField;
@@ -14,6 +15,7 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import org.pat.causeconnect.entity.Association;
 import org.pat.causeconnect.entity.AssociationContext;
 import org.pat.causeconnect.service.AssociationService;
+import org.pat.causeconnect.service.SecurityService;
 import org.pat.causeconnect.service.auth.AuthenticationService;
 import org.pat.causeconnect.ui.utils.NotificationUtils;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -25,8 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @AnonymousAllowed
 public class LoginView extends VerticalLayout {
 
-    public LoginView(AuthenticationService authenticationService, AssociationService associationService) {
-
+    public LoginView(AuthenticationService authenticationService, AssociationService associationService, SecurityService securityService) {
         setSizeFull();
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.CENTER);
@@ -41,7 +42,13 @@ public class LoginView extends VerticalLayout {
         Button loginButton = createButtonLogin(authenticationService, emailField, passwordField, associationSelect);
         Button forgotPassword = createForgotPasswordButton(authenticationService);
 
-        add(logo, associationSelect, emailField, passwordField, loginButton, forgotPassword);
+        Button closeButton = new Button("Quitter", e -> securityService.shutdown());
+        closeButton.setIcon(VaadinIcon.ARROW_RIGHT.create());
+        closeButton.setIconAfterText(true);
+        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        closeButton.addClassName("leave-button");
+
+        add(logo, associationSelect, emailField, passwordField, loginButton, forgotPassword, closeButton);
     }
 
     private Button createForgotPasswordButton(AuthenticationService authenticationService) {
