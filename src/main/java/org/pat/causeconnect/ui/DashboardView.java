@@ -14,12 +14,14 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import org.pat.causeconnect.entity.Project;
 import org.pat.causeconnect.entity.task.Task;
 import org.pat.causeconnect.entity.task.TaskStatus;
+import org.pat.causeconnect.service.AssociationService;
 import org.pat.causeconnect.service.project.ProjectService;
 import org.pat.causeconnect.service.task.TaskService;
 import org.pat.causeconnect.ui.component.CardComponent;
 import org.pat.causeconnect.ui.project.ProjectModal;
 import org.pat.causeconnect.ui.project.ProjectView;
 import org.pat.causeconnect.ui.project.ProjectsView;
+import org.pat.causeconnect.ui.task.TaskModal;
 import org.pat.causeconnect.ui.task.TaskView;
 import org.pat.causeconnect.ui.task.TasksView;
 
@@ -30,22 +32,17 @@ import java.util.*;
 @AnonymousAllowed
 @PageTitle("Tableau de bord")
 public class DashboardView extends VerticalLayout {
-    public DashboardView(ProjectService projectService, TaskService taskService) {
+    public DashboardView(ProjectService projectService, TaskService taskService, AssociationService associationService) {
         setSizeFull();
         ArrayList<Project> projects = projectService.getMyProjects();
         ArrayList<Task> tasks = taskService.getMyTasks();
 
         createProjectsLayout(projects, projectService);
-        createTasksLayout(tasks);
+        createTasksLayout(tasks, associationService, taskService);
     }
 
-    private void createTasksLayout(ArrayList<Task> tasks) {
+    private void createTasksLayout(ArrayList<Task> tasks, AssociationService associationService, TaskService taskService) {
         add(new H2("Mes Tâches"));
-
-//        Button createTaskButton = new Button("Créer une tâche");
-//        createTaskButton.setIcon(VaadinIcon.PLUS.create());
-//        createTaskButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-//        add(createTaskButton);
 
         Button viewAllTasksButton;
         if (tasks.size() > 3) {
@@ -71,7 +68,10 @@ public class DashboardView extends VerticalLayout {
             Date endTime = task.getDeadline();
             SimpleDateFormat formatter = new SimpleDateFormat("dd MMMM", Locale.FRENCH);
             CardComponent taskDiv = new CardComponent(task.getProject().getName() + " : " +task.getTitle(), "Échéance : " + formatter.format(endTime));
-            ComponentEventListener<AttachEvent> listener = event -> taskDiv.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate(TaskView.class, task.getId())));
+            ComponentEventListener<AttachEvent> listener = event -> taskDiv.addClickListener(e -> {
+                TaskModal taskModal = new TaskModal(task, associationService, taskService);
+                taskModal.open();
+            });
             taskDiv.addAttachListener(listener);
             taskDiv.addClassName("card--task");
             taskList.add(taskDiv);

@@ -90,6 +90,10 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
         this.projectId = projectId;
         this.project = projectService.getProjectById(projectId);
 
+        if (project == null) {
+            return;
+        }
+
         buildKanbanView();
         buildConfigurationView();
     }
@@ -138,16 +142,24 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
         DropTarget.create(column).addDropListener(event -> {
             Optional<Component> dragSourceComponent = event.getDragSourceComponent();
             dragSourceComponent.ifPresent(card -> {
+                Task task = taskService.getTaskById(card.getId().get());
+                if (task == null) {
+                    return;
+                }
+
+                task.setStatus(status);
+
+                Task updatedTask = taskService.updateTask(task);
+                if (updatedTask == null) {
+                    return;
+                }
+
                 Div previousParent = (Div) card.getParent().get();
                 previousParent.remove(card);
 
                 column.add(card);
-
-                Task task = taskService.getTaskById(card.getId().get());
-                task.setStatus(status);
-                taskService.updateTask(task);
+                NotificationUtils.createNotification("Tâche déplacée au statut " + status, true).open();
             });
-            NotificationUtils.createNotification("Tâche déplacée au statut " + status, true).open();
         });
     }
 
@@ -239,9 +251,9 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
         Project updatedProject = projectService.updateProject(project);
 
         if (updatedProject == null) {
-            NotificationUtils.createNotification("An error occurred while updating the project", false).open();
+            NotificationUtils.createNotification("Une erreur est survenue lors de la mise à jour du projet", false).open();
         } else {
-            NotificationUtils.createNotification("The project has been successfully updated!", true).open();
+            NotificationUtils.createNotification("Le projet a bien été mis à jour", true).open();
         }
     }
 

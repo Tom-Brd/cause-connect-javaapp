@@ -99,13 +99,11 @@ public class TaskModal extends Dialog {
                     task.setStatus(TaskStatus.valueOf(statusComboBox.getValue()));
                     Task updatedTask = taskService.updateTask(task);
                     if (updatedTask == null) {
-                        NotificationUtils.createNotification("Erreur lors de la sauvegarde des modifications", false).open();
                         return;
                     }
                 } else {
                     Task createdTask = taskService.createTask(task);
                     if (createdTask == null) {
-                        NotificationUtils.createNotification("Erreur lors de la création de la tâche", false).open();
                         return;
                     }
                     if (task.getResponsibleUser() != null) {
