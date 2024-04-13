@@ -12,7 +12,7 @@
 
     <groupId>org.pat</groupId>
     <artifactId>causeconnect</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.2</version>
     <name>causeconnect</name>
     <description>causeconnect</description>
     <properties>
@@ -90,6 +90,24 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>org.pat.causeconnect.CauseconnectApplication</mainClass>
+                        </manifest>
+                        <manifestEntries>
+                            <Implementation-Version>${project.version}</Implementation-Version>
+                            <Specification-Version>${project.version}</Specification-Version>
+                        </manifestEntries>
+                    </archive>
                 </configuration>
             </plugin>
         </plugins>
