@@ -1,6 +1,10 @@
 package org.pat.causeconnect;
 
+import org.pat.causeconnect.entity.Version;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -14,17 +18,15 @@ import java.nio.file.StandardCopyOption;
 public class UpdateDownloader {
     private final String baseUrl = "https://api.causeconnect.fr";
 
-    private String currentVersion = "";
-
     private String hasNewVersion() {
-//        RestTemplate restTemplate = new RestTemplate();
-//        String versionUrl = baseUrl + "/version";
-        currentVersion = CauseconnectApplication.class.getPackage().getImplementationVersion();
-//        String latestVersion = restTemplate.getForObject(versionUrl, String.class);
-        String latestVersion = "1.0.2";
+        RestTemplate restTemplate = new RestTemplate();
+        String versionUrl = baseUrl + "/java-app/latest-version";
+        String currentVersion = CauseconnectApplication.class.getPackage().getImplementationVersion();
+        ResponseEntity<Version> response = restTemplate.exchange(versionUrl, HttpMethod.GET, null, new ParameterizedTypeReference<>() {});
+        String latestVersionString = response.getBody().getVersion();
 
-        if (latestVersion != null && !latestVersion.equals(currentVersion)) {
-            return latestVersion;
+        if (latestVersionString != null && !latestVersionString.equals(currentVersion)) {
+            return latestVersionString;
         }
         return null;
     }
@@ -61,6 +63,7 @@ public class UpdateDownloader {
     private void replaceOldJar(Path newJarPath) throws IOException {
         Path oldJarPath = getRunningJarPath();
 
+        Files.deleteIfExists(oldJarPath);
         Files.move(newJarPath, oldJarPath);
         launchNewVersion(oldJarPath);
     }
