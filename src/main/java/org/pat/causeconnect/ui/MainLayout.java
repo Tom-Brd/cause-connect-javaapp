@@ -69,6 +69,9 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         UI.getCurrent().getStyle().set("--lumo-primary-color", primaryColor);
         UI.getCurrent().getStyle().set("--lumo-primary-color-50pct", primaryColor50pct);
         UI.getCurrent().getStyle().set("--lumo-primary-color-10pct", primaryColor10pct);
+
+        String font = theme.getFont();
+        UI.getCurrent().getStyle().set("--lumo-font-family", font);
     }
 
     private void createHeader() {

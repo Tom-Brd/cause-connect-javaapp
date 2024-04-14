@@ -15,12 +15,10 @@ public class Theme {
     private String font;
 
     public String getColor50pct() {
-        System.out.println(color + "80");
         return color + "80";
     }
 
     public String getColor10pct() {
-        System.out.println(color + "1A");
         return color + "1A";
     }
 }
