@@ -11,6 +11,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @Push
 public class CauseconnectApplication implements AppShellConfigurator {
     public static void main(String[] args) {
+        UpdateDownloader updateDownloader = new UpdateDownloader();
+        updateDownloader.downloadNewVersion();
+
         SpringApplication.run(CauseconnectApplication.class, args);
     }
 }
