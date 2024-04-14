@@ -12,7 +12,7 @@
 
     <groupId>org.pat</groupId>
     <artifactId>causeconnect</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
     <name>causeconnect</name>
     <description>causeconnect</description>
     <properties>
@@ -83,7 +83,15 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>3.2.4</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
                 <configuration>
+                    <classifier>exec</classifier>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>

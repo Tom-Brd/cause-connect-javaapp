@@ -38,7 +38,7 @@ public class CauseconnectApplication implements AppShellConfigurator {
             System.out.println("plugins is not null");
             for (File jar : plugins) {
                 System.out.println("jar: " + jar);
-                URLClassLoader loader = URLClassLoader.newInstance(new URL[] {jar.toURI().toURL()});
+                URLClassLoader loader = URLClassLoader.newInstance(new URL[] {jar.toURI().toURL()}, CauseConnectPlugin.class.getClassLoader());
                 ServiceLoader<CauseConnectPlugin> serviceLoader = ServiceLoader.load(CauseConnectPlugin.class, loader);
 
                 for(CauseConnectPlugin plugin : serviceLoader) {
