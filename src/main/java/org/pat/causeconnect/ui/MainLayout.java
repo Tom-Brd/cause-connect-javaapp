@@ -22,8 +22,10 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import org.pat.causeconnect.entity.Theme;
 import org.pat.causeconnect.entity.User;
 import org.pat.causeconnect.service.SecurityService;
+import org.pat.causeconnect.service.theme.ThemeService;
 import org.pat.causeconnect.ui.project.ProjectsView;
 import org.pat.causeconnect.ui.task.TasksView;
 import org.springframework.security.core.Authentication;
@@ -38,7 +40,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
 
     private User user;
 
-    public MainLayout(SecurityService securityService, AccessAnnotationChecker accessChecker) {
+    public MainLayout(SecurityService securityService, AccessAnnotationChecker accessChecker, ThemeService themeService) {
         this.securityService = securityService;
         this.accessChecker = accessChecker;
 
@@ -54,8 +56,22 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         }
 
         setPrimarySection(Section.DRAWER);
+        setTheme(themeService.getTheme());
         createHeader();
         createDrawer();
+    }
+
+    private void setTheme(Theme theme) {
+        String primaryColor = theme.getColor();
+        String primaryColor50pct = theme.getColor50pct();
+        String primaryColor10pct = theme.getColor10pct();
+
+        UI.getCurrent().getStyle().set("--lumo-primary-color", primaryColor);
+        UI.getCurrent().getStyle().set("--lumo-primary-color-50pct", primaryColor50pct);
+        UI.getCurrent().getStyle().set("--lumo-primary-color-10pct", primaryColor10pct);
+
+        String font = theme.getFont();
+        UI.getCurrent().getStyle().set("--lumo-font-family", font);
     }
 
     private void createHeader() {
