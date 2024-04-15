@@ -35,6 +35,7 @@ public class LoginView extends VerticalLayout {
         Image logo = new Image("https://media.discordapp.net/attachments/1209450636890873857/1220849023494131832/image.png?ex=6619a9c1&is=660734c1&hm=252780c33b6ede9746e6b98f81dca766f6279a95c039968342b837d6ae71ca03&format=webp&quality=lossless&width=823&height=673&", "logo");
         logo.setWidth("200px");
         logo.setHeight("200px");
+        logo.getStyle().set("object-fit", "contain");
 
         Select<Association> associationSelect = createAssociationSelect(associationService, logo);
         EmailField emailField = createEmailField();
