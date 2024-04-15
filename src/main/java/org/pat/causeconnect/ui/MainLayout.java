@@ -24,25 +24,33 @@ import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.pat.causeconnect.entity.Theme;
 import org.pat.causeconnect.entity.User;
+import org.pat.causeconnect.plugin.NavItemConfiguration;
+import org.pat.causeconnect.plugin.PluginLoader;
 import org.pat.causeconnect.service.SecurityService;
 import org.pat.causeconnect.service.theme.ThemeService;
 import org.pat.causeconnect.ui.project.ProjectsView;
 import org.pat.causeconnect.ui.task.TasksView;
 import org.springframework.security.core.Authentication;
 
+import java.util.List;
 import java.util.Optional;
 
 public class MainLayout extends AppLayout implements BeforeEnterObserver {
     private H2 viewTitle;
+    private final SideNav sideNav;
 
     private final SecurityService securityService;
     private final AccessAnnotationChecker accessChecker;
+    private final PluginLoader pluginLoader;
 
     private User user;
 
-    public MainLayout(SecurityService securityService, AccessAnnotationChecker accessChecker, ThemeService themeService) {
+    public MainLayout(SecurityService securityService, AccessAnnotationChecker accessChecker, ThemeService themeService, PluginLoader pluginLoader) {
         this.securityService = securityService;
         this.accessChecker = accessChecker;
+        this.pluginLoader = pluginLoader;
+
+        this.sideNav = createNavigation();
 
         Optional<User> userOptional = securityService.getAuthenticatedUser();
 
@@ -106,9 +114,22 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         appName.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
         Header header = new Header(appName);
 
-        Scroller scroller = new Scroller(createNavigation());
+        List<NavItemConfiguration> navItems = pluginLoader.getAllNavItems();
+        for (NavItemConfiguration navItem : navItems) {
+            if (accessChecker.hasAccess(navItem.viewClass())) {
+                System.out.println("Adding nav item");
+                sideNav.addItem(new SideNavItem(navItem.title(), navItem.viewClass(), navItem.icon().create()));
+            }
+        }
+
+        Scroller scroller = new Scroller(sideNav);
+        System.out.println("je reconstruis le drawer");
 
         addToDrawer(header, scroller, createFooter());
+    }
+
+    public SideNav getNavigation() {
+        return sideNav;
     }
 
     private SideNav createNavigation() {
