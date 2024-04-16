@@ -30,6 +30,7 @@ import org.pat.causeconnect.plugin.NavItemConfiguration;
 import org.pat.causeconnect.plugin.PluginLoader;
 import org.pat.causeconnect.service.SecurityService;
 import org.pat.causeconnect.service.theme.ThemeService;
+import org.pat.causeconnect.ui.plugin.PluginsView;
 import org.pat.causeconnect.ui.project.ProjectsView;
 import org.pat.causeconnect.ui.task.TasksView;
 import org.springframework.security.core.Authentication;
@@ -160,6 +161,10 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
 
         if (accessChecker.hasAccess(TasksView.class)) {
             nav.addItem(new SideNavItem("Mes tâches", TasksView.class, VaadinIcon.BULLETS.create()));
+        }
+
+        if (accessChecker.hasAccess(PluginsView.class)) {
+            nav.addItem(new SideNavItem("Plugins", PluginsView.class, VaadinIcon.PUZZLE_PIECE.create()));
         }
 
         return nav;
