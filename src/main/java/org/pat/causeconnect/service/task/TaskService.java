@@ -27,8 +27,11 @@ public class TaskService {
     @Value("${base.url}")
     private String baseUrl;
 
-    @Autowired
-    private InternetCheckService internetCheckService;
+    private final InternetCheckService internetCheckService;
+
+    public TaskService(InternetCheckService internetCheckService) {
+        this.internetCheckService = internetCheckService;
+    }
 
     public ArrayList<Task> getMyTasks() {
         if (!internetCheckService.hasInternetConnection()) {
@@ -153,8 +156,6 @@ public class TaskService {
             return null;
         }
 
-        System.out.println(task.getId());
-        System.out.println(task.getProject().getId());
         RestTemplate restTemplate = new RestTemplate();
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
         restTemplate.setRequestFactory(requestFactory);
@@ -168,7 +169,6 @@ public class TaskService {
 
         DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT;
         String formattedDate = formatter.format(task.getDeadline().toInstant().atOffset(ZoneOffset.UTC));
-        System.out.println(formattedDate);
         TaskUpdateRequest taskRequest = new TaskUpdateRequest(
                 task.getTitle(),
                 task.getDescription(),
@@ -211,7 +211,6 @@ public class TaskService {
         // convert Date to this format 2024-04-08T13:40:34.457Z
         DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT;
         String formattedDate = formatter.format(task.getDeadline().toInstant().atOffset(ZoneOffset.UTC));
-        System.out.println(formattedDate);
         TaskCreateRequest taskRequest = new TaskCreateRequest(
                 task.getTitle(),
                 task.getDescription(),

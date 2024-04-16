@@ -14,6 +14,8 @@ import org.pat.causeconnect.entity.Project;
 import org.pat.causeconnect.entity.User;
 import org.pat.causeconnect.entity.task.Task;
 import org.pat.causeconnect.entity.task.TaskStatus;
+import org.pat.causeconnect.plugin.events.EventManager;
+import org.pat.causeconnect.plugin.events.task.TaskUpdateEvent;
 import org.pat.causeconnect.service.AssociationService;
 import org.pat.causeconnect.service.task.TaskService;
 import org.pat.causeconnect.ui.utils.NotificationUtils;
@@ -26,21 +28,24 @@ public class TaskModal extends Dialog {
 
     private final boolean isEditMode;
     private final Task task;
+    private final Task previousTaskState;
 
-    public TaskModal(Project project, AssociationService associationService, TaskService taskService) {
+    public TaskModal(Project project, AssociationService associationService, TaskService taskService, EventManager eventManager) {
         this.task = new Task();
         this.task.setProject(project);
+        this.previousTaskState = task;
         this.isEditMode = false;
-        buildLayout(associationService, taskService, project);
+        buildLayout(associationService, taskService, eventManager, project);
     }
 
-    public TaskModal(Task task, AssociationService associationService, TaskService taskService) {
+    public TaskModal(Task task, AssociationService associationService, TaskService taskService, EventManager eventManager) {
         this.task = task;
+        this.previousTaskState = task;
         this.isEditMode = true;
-        buildLayout(associationService, taskService, task.getProject());
+        buildLayout(associationService, taskService, eventManager, task.getProject());
     }
 
-    private void buildLayout(AssociationService associationService, TaskService taskService, Project project) {
+    private void buildLayout(AssociationService associationService, TaskService taskService, EventManager eventManager, Project project) {
         setModal(true);
         setCloseOnEsc(true);
         setCloseOnOutsideClick(true);
@@ -101,6 +106,7 @@ public class TaskModal extends Dialog {
                     if (updatedTask == null) {
                         return;
                     }
+                    eventManager.fireEvent(new TaskUpdateEvent(previousTaskState, updatedTask));
                 } else {
                     Task createdTask = taskService.createTask(task);
                     if (createdTask == null) {
@@ -109,6 +115,7 @@ public class TaskModal extends Dialog {
                     if (task.getResponsibleUser() != null) {
                         taskService.assignTask(createdTask, task.getResponsibleUser());
                     }
+                    eventManager.fireEvent(new TaskUpdateEvent(previousTaskState, createdTask));
                     close();
                 }
             }

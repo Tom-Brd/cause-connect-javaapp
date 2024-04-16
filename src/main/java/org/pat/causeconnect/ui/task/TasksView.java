@@ -14,6 +14,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import org.pat.causeconnect.entity.Project;
 import org.pat.causeconnect.entity.task.Task;
+import org.pat.causeconnect.plugin.events.EventManager;
 import org.pat.causeconnect.service.AssociationService;
 import org.pat.causeconnect.service.task.TaskService;
 import org.pat.causeconnect.ui.MainLayout;
@@ -28,7 +29,7 @@ import java.util.stream.Collectors;
 @PageTitle("Mes Tâches")
 public class TasksView extends VerticalLayout {
 
-    public TasksView(TaskService taskService, AssociationService associationService) {
+    public TasksView(TaskService taskService, AssociationService associationService, EventManager eventManager) {
 
         setSizeFull();
 
@@ -44,7 +45,7 @@ public class TasksView extends VerticalLayout {
             projectSection.setOpened(true);
 
             Button createTaskButton = new Button("Créer une tâche", e -> {
-                TaskModal taskModal = new TaskModal(project, associationService, taskService);
+                TaskModal taskModal = new TaskModal(project, associationService, taskService, eventManager);
                 taskModal.open();
             });
             createTaskButton.setIcon(VaadinIcon.PLUS.create());
@@ -61,7 +62,7 @@ public class TasksView extends VerticalLayout {
                 SimpleDateFormat formatter = new SimpleDateFormat("dd MMMM", Locale.FRENCH);
                 CardComponent taskDiv = new CardComponent(task.getTitle(), "Échéance : " + formatter.format(endTime));
                 ComponentEventListener<AttachEvent> listener = event -> taskDiv.addClickListener(e -> {
-                    TaskModal taskModal = new TaskModal(task, associationService, taskService);
+                    TaskModal taskModal = new TaskModal(task, associationService, taskService, eventManager);
                     taskModal.open();
                 });
                 taskDiv.addAttachListener(listener);

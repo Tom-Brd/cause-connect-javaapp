@@ -26,6 +26,7 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import org.pat.causeconnect.entity.Project;
 import org.pat.causeconnect.entity.task.Task;
 import org.pat.causeconnect.entity.task.TaskStatus;
+import org.pat.causeconnect.plugin.events.EventManager;
 import org.pat.causeconnect.service.AssociationService;
 import org.pat.causeconnect.service.project.ProjectService;
 import org.pat.causeconnect.service.task.TaskService;
@@ -52,14 +53,16 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
     private final ProjectService projectService;
     private final TaskService taskService;
     private final AssociationService associationService;
+    private final EventManager eventManager;
 
     private String projectId;
     private Project project;
 
-    public ProjectView(ProjectService projectService, TaskService taskService, AssociationService associationService) {
+    public ProjectView(ProjectService projectService, TaskService taskService, AssociationService associationService, EventManager eventManager) {
         this.projectService = projectService;
         this.taskService = taskService;
         this.associationService = associationService;
+        this.eventManager = eventManager;
 
         kanbanView.setWidthFull();
 
@@ -102,7 +105,7 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
         kanbanView.removeAll();
 
         Button createTaskButton = new Button("Créer une tâche", e -> {
-            TaskModal taskModal = new TaskModal(project, associationService, taskService);
+            TaskModal taskModal = new TaskModal(project, associationService, taskService, eventManager);
             taskModal.open();
         });
         createTaskButton.setIcon(VaadinIcon.PLUS.create());
@@ -171,7 +174,7 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
     private void addTaskToColumn(Task task) {
         CardComponentDraggable card = new CardComponentDraggable(task.getTitle(), task.getDescription());
         ComponentEventListener<AttachEvent> listener = event -> card.addClickListener(e -> {
-            TaskModal taskModal = new TaskModal(task, associationService, taskService);
+            TaskModal taskModal = new TaskModal(task, associationService, taskService, eventManager);
             taskModal.open();
         });
         card.addAttachListener(listener);

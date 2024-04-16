@@ -14,6 +14,7 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import org.pat.causeconnect.entity.Project;
 import org.pat.causeconnect.entity.task.Task;
 import org.pat.causeconnect.entity.task.TaskStatus;
+import org.pat.causeconnect.plugin.events.EventManager;
 import org.pat.causeconnect.service.AssociationService;
 import org.pat.causeconnect.service.project.ProjectService;
 import org.pat.causeconnect.service.task.TaskService;
@@ -32,16 +33,16 @@ import java.util.*;
 @AnonymousAllowed
 @PageTitle("Tableau de bord")
 public class DashboardView extends VerticalLayout {
-    public DashboardView(ProjectService projectService, TaskService taskService, AssociationService associationService) {
+    public DashboardView(ProjectService projectService, TaskService taskService, AssociationService associationService, EventManager eventManager) {
         setSizeFull();
         ArrayList<Project> projects = projectService.getMyProjects();
         ArrayList<Task> tasks = taskService.getMyTasks();
 
         createProjectsLayout(projects, projectService);
-        createTasksLayout(tasks, associationService, taskService);
+        createTasksLayout(tasks, associationService, taskService, eventManager);
     }
 
-    private void createTasksLayout(ArrayList<Task> tasks, AssociationService associationService, TaskService taskService) {
+    private void createTasksLayout(ArrayList<Task> tasks, AssociationService associationService, TaskService taskService, EventManager eventManager) {
         add(new H2("Mes Tâches"));
 
         Button viewAllTasksButton;
@@ -69,7 +70,7 @@ public class DashboardView extends VerticalLayout {
             SimpleDateFormat formatter = new SimpleDateFormat("dd MMMM", Locale.FRENCH);
             CardComponent taskDiv = new CardComponent(task.getProject().getName() + " : " +task.getTitle(), "Échéance : " + formatter.format(endTime));
             ComponentEventListener<AttachEvent> listener = event -> taskDiv.addClickListener(e -> {
-                TaskModal taskModal = new TaskModal(task, associationService, taskService);
+                TaskModal taskModal = new TaskModal(task, associationService, taskService, eventManager);
                 taskModal.open();
             });
             taskDiv.addAttachListener(listener);
