@@ -27,7 +27,7 @@ public class PluginLoader {
 
                 for(CauseConnectPlugin plugin : serviceLoader) {
                     pluginsList.add(plugin);
-                    
+                    System.out.println("plugin: " + plugin);
                     plugin.load();
 
                     for (ViewConfiguration viewConfiguration : plugin.getViews()) {
@@ -46,5 +46,15 @@ public class PluginLoader {
             navItems.addAll(plugin.getNavItems());
         }
         return navItems;
+    }
+
+    public List<HeaderPlugin> getAllHeaderPlugins() {
+        List<HeaderPlugin> headerPlugins = new ArrayList<>();
+        for (CauseConnectPlugin plugin : pluginsList) {
+            if (plugin instanceof HeaderPlugin) {
+                headerPlugins.add((HeaderPlugin) plugin);
+            }
+        }
+        return headerPlugins;
     }
 }

@@ -1,5 +1,6 @@
 package org.pat.causeconnect.ui;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
@@ -24,6 +25,7 @@ import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.pat.causeconnect.entity.Theme;
 import org.pat.causeconnect.entity.User;
+import org.pat.causeconnect.plugin.HeaderPlugin;
 import org.pat.causeconnect.plugin.NavItemConfiguration;
 import org.pat.causeconnect.plugin.PluginLoader;
 import org.pat.causeconnect.service.SecurityService;
@@ -38,6 +40,8 @@ import java.util.Optional;
 public class MainLayout extends AppLayout implements BeforeEnterObserver {
     private H2 viewTitle;
     private final SideNav sideNav;
+
+    private HorizontalLayout pluginContainer;
 
     private final SecurityService securityService;
     private final AccessAnnotationChecker accessChecker;
@@ -66,6 +70,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         setPrimarySection(Section.DRAWER);
         setTheme(themeService.getTheme());
         createHeader();
+        loadHeaderPlugins();
         createDrawer();
     }
 
@@ -88,9 +93,13 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
 
         viewTitle = new H2();
         viewTitle.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
+        viewTitle.getStyle().set("white-space", "nowrap");
 
-        Div spacer = new Div();
-        spacer.getStyle().set("flex-grow", "1");
+        pluginContainer = new HorizontalLayout();
+        pluginContainer.setWidthFull();
+        pluginContainer.setAlignItems(FlexComponent.Alignment.CENTER);
+        pluginContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER );
+        pluginContainer.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
 
         Button closeButton = new Button("Quitter", e -> securityService.shutdown());
         closeButton.setIcon(VaadinIcon.ARROW_RIGHT.create());
@@ -102,10 +111,16 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         headerLayout.setWidthFull();
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        headerLayout.add(toggle, viewTitle, spacer, closeButton);
-        headerLayout.setFlexGrow(1, spacer);
+        headerLayout.add(toggle, viewTitle, pluginContainer, closeButton);
 
         addToNavbar(true, headerLayout);
+    }
+
+    private void loadHeaderPlugins() {
+        List<HeaderPlugin> headerPlugins = pluginLoader.getAllHeaderPlugins();
+        for (HeaderPlugin plugin : headerPlugins) {
+            plugin.addToHeader(pluginContainer);
+        }
     }
 
     private void createDrawer() {
