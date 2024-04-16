@@ -1,7 +1,7 @@
 # How to install the application on Mac OS
 1. Compile the application using the following command:
     ```bash
-    mvn clean package -Pproduction
+    mvn clean install -Pproduction
     ```
 2. Rename the compiled jar file to causeconnect.jar
 3. Put the compiled jar file in CauseConnect folder
