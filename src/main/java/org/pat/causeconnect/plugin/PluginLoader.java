@@ -1,5 +1,6 @@
 package org.pat.causeconnect.plugin;
 
+import org.pat.causeconnect.plugin.events.EventManager;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -12,6 +13,12 @@ import java.util.ServiceLoader;
 @Component
 public class PluginLoader {
     private final List<CauseConnectPlugin> pluginsList = new ArrayList<>();
+
+    private final EventManager eventManager;
+
+    public PluginLoader(EventManager eventManager) {
+        this.eventManager = eventManager;
+    }
     
     public void loadPlugins() throws Exception {
         System.out.println(System.getProperty("java.class.path"));
@@ -28,7 +35,7 @@ public class PluginLoader {
                 for(CauseConnectPlugin plugin : serviceLoader) {
                     pluginsList.add(plugin);
                     System.out.println("plugin: " + plugin);
-                    plugin.load();
+                    plugin.load(eventManager);
 
                     for (ViewConfiguration viewConfiguration : plugin.getViews()) {
                         viewConfiguration.registerViews();

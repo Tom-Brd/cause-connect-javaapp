@@ -1,10 +1,12 @@
 package org.pat.causeconnect.plugin;
 
+import org.pat.causeconnect.plugin.events.EventManager;
+
 import java.util.Collection;
 import java.util.Collections;
 
 public interface CauseConnectPlugin {
-    void load();
+    void load(EventManager eventManager);
 
     default Collection<ViewConfiguration> getViews() {
         return Collections.emptyList();
