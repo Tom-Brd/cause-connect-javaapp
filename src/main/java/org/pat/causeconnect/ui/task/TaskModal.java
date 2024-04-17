@@ -1,5 +1,6 @@
 package org.pat.causeconnect.ui.task;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -27,20 +28,17 @@ import java.util.Arrays;
 public class TaskModal extends Dialog {
 
     private final boolean isEditMode;
-    private final Task task;
-    private final Task previousTaskState;
+    private Task task;
 
     public TaskModal(Project project, AssociationService associationService, TaskService taskService, EventManager eventManager) {
         this.task = new Task();
         this.task.setProject(project);
-        this.previousTaskState = task;
         this.isEditMode = false;
         buildLayout(associationService, taskService, eventManager, project);
     }
 
     public TaskModal(Task task, AssociationService associationService, TaskService taskService, EventManager eventManager) {
         this.task = task;
-        this.previousTaskState = task;
         this.isEditMode = true;
         buildLayout(associationService, taskService, eventManager, task.getProject());
     }
@@ -94,28 +92,43 @@ public class TaskModal extends Dialog {
         }
 
         Button saveButton = new Button(isEditMode ? "Enregistrer" : "Créer", e -> {
-            if (validateFields(titleField, userComboBox, descriptionField, dateTimePicker, statusComboBox)) {
-                task.setTitle(titleField.getValue());
-                task.setDescription(descriptionField.getValue());
-                task.setDeadline(java.util.Date.from(dateTimePicker.getValue().atZone(ZoneId.systemDefault()).toInstant()));
-                task.setResponsibleUser(members.stream().filter(user -> user.getFullName().equals(userComboBox.getValue())).findFirst().orElse(null));
+            if (validateFields(titleField, descriptionField, dateTimePicker, statusComboBox)) {
+                Task tempTask = new Task();
+
+                tempTask.setId(task.getId());
+                tempTask.setTitle(titleField.getValue());
+                tempTask.setDescription(descriptionField.getValue());
+                tempTask.setDeadline(java.util.Date.from(dateTimePicker.getValue().atZone(ZoneId.systemDefault()).toInstant()));
+                tempTask.setResponsibleUser(members.stream().filter(user -> user.getFullName().equals(userComboBox.getValue())).findFirst().orElse(null));
+                tempTask.setProject(project);
 
                 if (isEditMode) {
-                    task.setStatus(TaskStatus.valueOf(statusComboBox.getValue()));
-                    Task updatedTask = taskService.updateTask(task);
+                    tempTask.setStatus(TaskStatus.valueOf(statusComboBox.getValue()));
+                    TaskUpdateEvent taskUpdateEvent = new TaskUpdateEvent(task, tempTask, false);
+                    eventManager.fireEvent(taskUpdateEvent);
+
+                    if (taskUpdateEvent.isCancelled()) {
+                        return;
+                    }
+
+                    Task updatedTask = taskService.updateTask(tempTask);
                     if (updatedTask == null) {
                         return;
                     }
-                    eventManager.fireEvent(new TaskUpdateEvent(previousTaskState, updatedTask));
+                    task = updatedTask;
                 } else {
-                    Task createdTask = taskService.createTask(task);
+                    System.out.println("Creating task");
+                    Task createdTask = taskService.createTask(tempTask);
                     if (createdTask == null) {
                         return;
                     }
-                    if (task.getResponsibleUser() != null) {
-                        taskService.assignTask(createdTask, task.getResponsibleUser());
+                    System.out.println(tempTask.getResponsibleUser());
+                    if (tempTask.getResponsibleUser() != null) {
+                        System.out.println("Assigning task to user");
+                        taskService.assignTask(createdTask, tempTask.getResponsibleUser());
+                        createdTask.setResponsibleUser(tempTask.getResponsibleUser());
                     }
-                    eventManager.fireEvent(new TaskUpdateEvent(previousTaskState, createdTask));
+                    task = createdTask;
                     close();
                 }
             }
@@ -128,13 +141,12 @@ public class TaskModal extends Dialog {
         add(content);
     }
 
-    private boolean validateFields(TextField titleField, ComboBox<String> userComboBox, TextArea descriptionField, DateTimePicker dateTimePicker, ComboBox<String> statusComboBox) {
+    private boolean validateFields(TextField titleField, TextArea descriptionField, DateTimePicker dateTimePicker, ComboBox<String> statusComboBox) {
         titleField.setInvalid(titleField.isEmpty());
-        userComboBox.setInvalid(userComboBox.isEmpty());
         descriptionField.setInvalid(descriptionField.isEmpty());
         dateTimePicker.setInvalid(dateTimePicker.isEmpty());
         statusComboBox.setInvalid(statusComboBox.isEmpty());
 
-        return !titleField.isEmpty() && !userComboBox.isEmpty() && !descriptionField.isEmpty() && !dateTimePicker.isEmpty() && !statusComboBox.isEmpty();
+        return !titleField.isEmpty() && !descriptionField.isEmpty() && !dateTimePicker.isEmpty() && !statusComboBox.isEmpty();
     }
 }

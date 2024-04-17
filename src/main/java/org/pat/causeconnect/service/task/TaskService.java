@@ -6,9 +6,7 @@ import org.pat.causeconnect.entity.User;
 import org.pat.causeconnect.entity.task.Task;
 import org.pat.causeconnect.entity.task.TaskStatus;
 import org.pat.causeconnect.service.InternetCheckService;
-import org.pat.causeconnect.service.project.ProjectByIdResponse;
 import org.pat.causeconnect.ui.utils.NotificationUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -169,14 +167,14 @@ public class TaskService {
 
         DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT;
         String formattedDate = formatter.format(task.getDeadline().toInstant().atOffset(ZoneOffset.UTC));
-        TaskUpdateRequest taskRequest = new TaskUpdateRequest(
-                task.getTitle(),
-                task.getDescription(),
-                task.getStatus().name().toLowerCase(),
-                formattedDate,
-                task.getProject().getId(),
-                task.getResponsibleUser().getId()
-        );
+
+        TaskUpdateRequest taskRequest = new TaskUpdateRequest();
+        taskRequest.setTitle(task.getTitle());
+        taskRequest.setDescription(task.getDescription());
+        taskRequest.setStatus(task.getStatus().name().toLowerCase());
+        taskRequest.setDeadline(formattedDate);
+        taskRequest.setProjectId(task.getProject().getId());
+        taskRequest.setResponsibleUserId(task.getResponsibleUser() != null ? task.getResponsibleUser().getId() : "");
 
         HttpEntity<TaskUpdateRequest> entity = new HttpEntity<>(taskRequest, headers);
 
