@@ -62,7 +62,7 @@ public class PluginsView extends VerticalLayout {
             }
         });
 
-        authorFilter = new TextField("Auteur");
+        authorFilter = new TextField("Développeur");
         authorFilter.setClearButtonVisible(true);
         authorFilter.setValueChangeMode(ValueChangeMode.LAZY);
         authorFilter.setWidth("25%");
@@ -80,14 +80,20 @@ public class PluginsView extends VerticalLayout {
         grid.addColumn(Plugin::getName).setHeader("Nom").setAutoWidth(true);
         grid.addColumn(Plugin::getAuthor).setHeader("Développeur").setAutoWidth(true);
         grid.addColumn(Plugin::getDescription).setHeader("Description").setAutoWidth(true);
-        grid.addComponentColumn(this::createCallApiButton).setHeader("Télécharger").setAutoWidth(true);
+        grid.addComponentColumn(this::createCallApiButton).setHeader("Actions").setAutoWidth(true);
         return grid;
     }
 
     private Button createCallApiButton(Plugin plugin) {
         boolean isPluginInstalled = pluginService.isPluginInstalled(plugin.getJarFilePath());
         if (isPluginInstalled) {
-            return new Button("Plugin installé", VaadinIcon.CHECK.create());
+            Button deleteButton = new Button("Supprimer", VaadinIcon.TRASH.create(), click -> {
+                pluginService.deletePlugin(plugin);
+                NotificationUtils.createNotification("Plugin supprimé", true).open();
+            });
+//            deleteButton.getElement().getStyle().set("color", "red");
+            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+            return deleteButton;
         }
         return new Button("Télécharger", click -> {
             pluginService.installPlugin(plugin);
