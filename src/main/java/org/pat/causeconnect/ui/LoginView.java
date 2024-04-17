@@ -9,12 +9,15 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.PasswordField;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import org.pat.causeconnect.entity.Association;
 import org.pat.causeconnect.entity.AssociationContext;
 import org.pat.causeconnect.service.AssociationService;
+import org.pat.causeconnect.service.InternetCheckService;
 import org.pat.causeconnect.service.SecurityService;
 import org.pat.causeconnect.service.auth.AuthenticationService;
 import org.pat.causeconnect.ui.utils.NotificationUtils;
@@ -25,9 +28,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 @Route("login")
 @AnonymousAllowed
-public class LoginView extends VerticalLayout {
+public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
-    public LoginView(AuthenticationService authenticationService, AssociationService associationService, SecurityService securityService) {
+    private final InternetCheckService internetCheckService;
+
+    public LoginView(AuthenticationService authenticationService, AssociationService associationService, SecurityService securityService, InternetCheckService internetCheckService) {
+        this.internetCheckService = internetCheckService;
         setSizeFull();
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.CENTER);
@@ -146,5 +152,17 @@ public class LoginView extends VerticalLayout {
         emailField.setErrorMessage("Veuillez saisir un email valide.");
         emailField.setPlaceholder("example@example.example");
         return emailField;
+    }
+
+    @Override
+    public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
+        if (VaadinSession.getCurrent().getAttribute(Authentication.class) != null) {
+            beforeEnterEvent.forwardTo("");
+            return;
+        }
+
+        if (!internetCheckService.hasInternetConnection()) {
+            NotificationUtils.createNotification("Pas de connexion Internet, veuillez vérifier votre connexion.", false).open();
+        }
     }
 }

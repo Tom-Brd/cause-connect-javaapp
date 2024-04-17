@@ -1,6 +1,7 @@
 package org.pat.causeconnect;
 
 import org.pat.causeconnect.entity.Version;
+import org.pat.causeconnect.service.InternetCheckService;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpMethod;
@@ -32,6 +33,11 @@ public class UpdateDownloader {
     }
 
     public void downloadNewVersion() {
+        InternetCheckService internetCheckService = new InternetCheckService();
+        if (!internetCheckService.hasInternetConnection()) {
+            return;
+        }
+
         String version = hasNewVersion();
         if (version != null) {
             System.out.println("Downloading new version: " + version);

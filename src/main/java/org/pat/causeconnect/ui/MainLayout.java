@@ -76,6 +76,10 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
     }
 
     private void setTheme(Theme theme) {
+        if (theme == null) {
+            return;
+        }
+        
         String primaryColor = theme.getColor();
         String primaryColor50pct = theme.getColor50pct();
         String primaryColor10pct = theme.getColor10pct();
