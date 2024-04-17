@@ -8,6 +8,7 @@ import org.pat.causeconnect.service.project.ProjectByIdResponse;
 import org.pat.causeconnect.ui.utils.NotificationUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -70,5 +71,34 @@ public class PluginService {
     private String getFileName(String jarFilePath) {
         String[] parts = jarFilePath.split("/");
         return parts[parts.length - 1];
+    }
+
+    public void installPlugin(Plugin plugin) {
+        if (!internetCheckService.hasInternetConnection()) {
+            NotificationUtils.createNotification("Pas de connexion Internet, l'installation a échoué", false).open();
+            return;
+        }
+
+        RestTemplate restTemplate = new RestTemplate();
+        String downloadUrl = baseUrl + "/java-app/plugins/" + plugin.getId();
+
+        try {
+            Resource resource = restTemplate.getForObject(downloadUrl, Resource.class);
+            if (resource == null || !resource.isReadable()) {
+                NotificationUtils.createNotification("Erreur lors de la récupération du plugin", false).open();
+                return;
+            }
+
+            Path tempPath = Files.createTempFile(plugin.getName(), ".jar");
+            resource.getInputStream().transferTo(Files.newOutputStream(tempPath));
+
+            Path pluginPath = getPluginPath();
+            String fileName = getFileName(plugin.getJarFilePath());
+            Files.move(tempPath, pluginPath.resolve(fileName));
+
+            NotificationUtils.createNotification("Plugin installé avec succès", true).open();
+        } catch (Exception e) {
+            NotificationUtils.createNotification("Erreur lors de l'installation du plugin", false).open();
+        }
     }
 }

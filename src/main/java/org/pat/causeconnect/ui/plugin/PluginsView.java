@@ -89,7 +89,8 @@ public class PluginsView extends VerticalLayout {
         if (isPluginInstalled) {
             return new Button("Plugin installé", VaadinIcon.CHECK.create());
         }
-        return new Button("Call API", click -> {
+        return new Button("Télécharger", click -> {
+            pluginService.installPlugin(plugin);
             NotificationUtils.createNotification("Calling API for " + plugin.getName(), true).open();
         });
     }
