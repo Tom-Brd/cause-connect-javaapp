@@ -12,6 +12,7 @@ import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import org.pat.causeconnect.entity.Association;
@@ -21,9 +22,13 @@ import org.pat.causeconnect.service.InternetCheckService;
 import org.pat.causeconnect.service.SecurityService;
 import org.pat.causeconnect.service.auth.AuthenticationService;
 import org.pat.causeconnect.ui.utils.NotificationUtils;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Route("login")
@@ -32,13 +37,15 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
     private final InternetCheckService internetCheckService;
 
-    public LoginView(AuthenticationService authenticationService, AssociationService associationService, SecurityService securityService, InternetCheckService internetCheckService) {
+    public LoginView(AuthenticationService authenticationService, AssociationService associationService, SecurityService securityService, InternetCheckService internetCheckService) throws IOException {
         this.internetCheckService = internetCheckService;
         setSizeFull();
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.CENTER);
 
-        Image logo = new Image("https://media.discordapp.net/attachments/1209450636890873857/1220849023494131832/image.png?ex=6619a9c1&is=660734c1&hm=252780c33b6ede9746e6b98f81dca766f6279a95c039968342b837d6ae71ca03&format=webp&quality=lossless&width=823&height=673&", "logo");
+        Resource resource = new ClassPathResource("static/cause-connector.png");
+        InputStream inputStream = resource.getInputStream();
+        Image logo = new Image(new StreamResource("cause-connector.png", () -> inputStream), "cause-connect-logo");
         logo.setWidth("200px");
         logo.setHeight("200px");
         logo.getStyle().set("object-fit", "contain");
