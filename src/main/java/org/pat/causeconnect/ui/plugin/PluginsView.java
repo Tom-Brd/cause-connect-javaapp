@@ -91,8 +91,9 @@ public class PluginsView extends VerticalLayout {
                 pluginService.deletePlugin(plugin);
                 NotificationUtils.createNotification("Plugin supprimé", true).open();
             });
-//            deleteButton.getElement().getStyle().set("color", "red");
-            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+            deleteButton.getElement().getStyle().set("color", "white");
+            deleteButton.getElement().getStyle().set("background-color", "#FF4D4F");
+            deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON);
             return deleteButton;
         }
         return new Button("Télécharger", click -> {

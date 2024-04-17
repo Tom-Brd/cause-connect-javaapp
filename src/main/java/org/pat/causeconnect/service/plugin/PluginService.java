@@ -2,6 +2,7 @@ package org.pat.causeconnect.service.plugin;
 
 import com.vaadin.flow.server.VaadinSession;
 import org.pat.causeconnect.entity.Plugin;
+import org.pat.causeconnect.plugin.PluginLoader;
 import org.pat.causeconnect.service.InternetCheckService;
 import org.pat.causeconnect.service.project.MyProjectsResponse;
 import org.pat.causeconnect.service.project.ProjectByIdResponse;
@@ -26,9 +27,11 @@ public class PluginService {
     private String baseUrl;
 
     private final InternetCheckService internetCheckService;
+    private final PluginLoader pluginLoader;
 
-    public PluginService(InternetCheckService internetCheckService) {
+    public PluginService(InternetCheckService internetCheckService, PluginLoader pluginLoader) {
         this.internetCheckService = internetCheckService;
+        this.pluginLoader = pluginLoader;
     }
 
     public ArrayList<Plugin> getPlugins() {
@@ -96,6 +99,8 @@ public class PluginService {
             String fileName = getFileName(plugin.getJarFilePath());
             Files.move(tempPath, pluginPath.resolve(fileName));
 
+            pluginLoader.loadPlugin(fileName);
+
             NotificationUtils.createNotification("Plugin installé avec succès", true).open();
         } catch (Exception e) {
             NotificationUtils.createNotification("Erreur lors de l'installation du plugin", false).open();
@@ -105,7 +110,7 @@ public class PluginService {
     public void deletePlugin(Plugin plugin) {
         Path pluginPath = getPluginPath();
         String fileName = getFileName(plugin.getJarFilePath());
-
+        System.out.println("Deleting plugin: " + fileName);
         try {
             Files.deleteIfExists(pluginPath.resolve(fileName));
             NotificationUtils.createNotification("Plugin supprimé", true).open();
