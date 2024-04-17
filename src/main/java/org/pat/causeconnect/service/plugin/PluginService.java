@@ -13,6 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -51,5 +54,21 @@ public class PluginService {
         VaadinSession.getCurrent().setAttribute(PluginsResponse.class, pluginsResponse);
 
         return pluginsResponse.getPlugins();
+    }
+
+    public boolean isPluginInstalled(String jarFilePath) {
+        Path pluginPath = getPluginPath();
+        String fileName = getFileName(jarFilePath);
+
+        return Files.exists(pluginPath.resolve(fileName));
+    }
+
+    private Path getPluginPath() {
+        return Paths.get("/Applications/CauseConnect.app/Contents/app/plugins/");
+    }
+
+    private String getFileName(String jarFilePath) {
+        String[] parts = jarFilePath.split("/");
+        return parts[parts.length - 1];
     }
 }

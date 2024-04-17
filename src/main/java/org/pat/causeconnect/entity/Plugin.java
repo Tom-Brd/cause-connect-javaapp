@@ -10,4 +10,5 @@ public class Plugin {
     private String name;
     private String description;
     private String author;
+    private String jarFilePath;
 }

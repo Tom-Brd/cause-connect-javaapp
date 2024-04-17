@@ -27,12 +27,12 @@ public class PluginsView extends VerticalLayout {
     private Grid<Plugin> grid;
     private TextField nameFilter;
     private TextField authorFilter;
-    private PluginService pluginService;
+    private final PluginService pluginService;
     private final List<Plugin> plugins;
 
     public PluginsView(PluginService pluginService) {
-//        plugins = pluginService.getPlugins();
-        plugins = List.of(new Plugin("324567809IHDXJQKJOLS", "Plugin 1", "Description 1", "Author 1"), new Plugin("IZIUEHDGFU2349873", "Plugin 2", "Description 2", "Author 2"));
+        this.pluginService = pluginService;
+        plugins = pluginService.getPlugins();
         setSizeFull();
         addClassName("plugins-view");
 
@@ -85,8 +85,11 @@ public class PluginsView extends VerticalLayout {
     }
 
     private Button createCallApiButton(Plugin plugin) {
+        boolean isPluginInstalled = pluginService.isPluginInstalled(plugin.getJarFilePath());
+        if (isPluginInstalled) {
+            return new Button("Plugin installé", VaadinIcon.CHECK.create());
+        }
         return new Button("Call API", click -> {
-            // Here you would call your API
             NotificationUtils.createNotification("Calling API for " + plugin.getName(), true).open();
         });
     }
