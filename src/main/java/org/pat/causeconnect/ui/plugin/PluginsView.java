@@ -16,9 +16,11 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import org.pat.causeconnect.entity.Plugin;
 import org.pat.causeconnect.service.plugin.PluginService;
 import org.pat.causeconnect.ui.MainLayout;
+import org.pat.causeconnect.ui.project.ProjectView;
 import org.pat.causeconnect.ui.utils.NotificationUtils;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 @Route(value = "plugins", layout = MainLayout.class)
 @AnonymousAllowed
@@ -88,10 +90,14 @@ public class PluginsView extends VerticalLayout {
 
     private Button createCallApiButton(Plugin plugin) {
         boolean isPluginInstalled = pluginService.isPluginInstalled(plugin.getJarFilePath());
+        Consumer<String> onCompletion = message -> {
+            NotificationUtils.createNotification(message, true).open();
+            getUI().ifPresent(ui -> ui.getPage().reload());
+        };
         if (isPluginInstalled) {
             Button deleteButton = new Button("Supprimer", VaadinIcon.TRASH.create(), click -> {
                 pluginService.deletePlugin(plugin);
-                getUI().ifPresent(ui -> ui.getPage().reload());
+                onCompletion.accept("Le plugin a été supprimé avec succès !");
             });
             deleteButton.getElement().getStyle().set("color", "white");
             deleteButton.getElement().getStyle().set("background-color", "#FF4D4F");
@@ -100,7 +106,7 @@ public class PluginsView extends VerticalLayout {
         }
         return new Button("Télécharger", click -> {
             pluginService.installPlugin(plugin);
-            getUI().ifPresent(ui -> ui.getPage().reload());
+            onCompletion.accept("Le plugin a été installé avec succès !");
         });
     }
 

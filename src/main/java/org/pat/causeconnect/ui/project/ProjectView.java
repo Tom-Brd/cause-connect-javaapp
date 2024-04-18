@@ -105,8 +105,12 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
     private void buildKanbanView() {
         kanbanView.removeAll();
 
+        Consumer<String> onCompletion = message -> {
+            NotificationUtils.createNotification(message, true).open();
+            getUI().ifPresent(ui -> ui.navigate(ProjectView.class, projectId));
+        };
         Button createTaskButton = new Button("Créer une tâche", e -> {
-            TaskModal taskModal = new TaskModal(project, associationService, taskService, eventManager);
+            TaskModal taskModal = new TaskModal(project, associationService, taskService, eventManager, onCompletion);
             taskModal.open();
         });
         createTaskButton.setIcon(VaadinIcon.PLUS.create());
@@ -146,6 +150,10 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
     private void makeColumnDropTarget(Div column, TaskStatus status) {
         DropTarget.create(column).addDropListener(event -> {
             Optional<Component> dragSourceComponent = event.getDragSourceComponent();
+            Consumer<String> onCompletion = message -> {
+                NotificationUtils.createNotification(message, true).open();
+                getUI().ifPresent(ui -> ui.navigate(ProjectView.class, projectId));
+            };
             dragSourceComponent.ifPresent(card -> {
                 Task task = taskService.getTaskById(card.getId().get());
                 if (task == null) {
@@ -170,7 +178,7 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
                 previousParent.remove(card);
 
                 column.add(card);
-                getUI().ifPresent(ui -> ui.getPage().reload());
+                onCompletion.accept("La tâche a été déplacée avec succès !");
             });
         });
     }
