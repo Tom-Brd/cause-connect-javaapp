@@ -1,7 +1,6 @@
 package org.pat.causeconnect.plugin.events;
 
 import org.pat.causeconnect.plugin.CauseConnectPlugin;
-import org.pat.causeconnect.plugin.events.task.CauseConnectEvent;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
