@@ -132,9 +132,7 @@ public class TaskModal extends Dialog {
                         return;
                     }
 
-                    System.out.println(tempTask.getResponsibleUser());
                     if (eventTask.getResponsibleUser() != null) {
-                        System.out.println("Assigning task to user");
                         taskService.assignTask(createdTask, eventTask.getResponsibleUser());
                         createdTask.setResponsibleUser(eventTask.getResponsibleUser());
                     }

@@ -5,6 +5,10 @@ import org.pat.causeconnect.entity.Project;
 import org.pat.causeconnect.entity.User;
 import org.pat.causeconnect.entity.task.Task;
 import org.pat.causeconnect.entity.task.TaskStatus;
+import org.pat.causeconnect.plugin.events.EventManager;
+import org.pat.causeconnect.plugin.events.task.GettingMyTasksEvent;
+import org.pat.causeconnect.plugin.events.task.GettingSingleTaskEvent;
+import org.pat.causeconnect.plugin.events.task.GettingTasksEvent;
 import org.pat.causeconnect.service.InternetCheckService;
 import org.pat.causeconnect.ui.utils.NotificationUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,9 +30,11 @@ public class TaskService {
     private String baseUrl;
 
     private final InternetCheckService internetCheckService;
+    private final EventManager eventManager;
 
-    public TaskService(InternetCheckService internetCheckService) {
+    public TaskService(InternetCheckService internetCheckService, EventManager eventManager) {
         this.internetCheckService = internetCheckService;
+        this.eventManager = eventManager;
     }
 
     public ArrayList<Task> getMyTasks() {
@@ -70,6 +76,9 @@ public class TaskService {
         MyTasksResponse myTasksResponse = new MyTasksResponse(tasks);
         VaadinSession.getCurrent().setAttribute(MyTasksResponse.class, myTasksResponse);
 
+        GettingMyTasksEvent event = new GettingMyTasksEvent(tasks);
+        eventManager.fireEvent(event);
+
         return tasks;
     }
 
@@ -110,6 +119,9 @@ public class TaskService {
 
         tasksById.put(taskId, task);
         VaadinSession.getCurrent().setAttribute("tasksById", tasksById);
+
+        GettingSingleTaskEvent event = new GettingSingleTaskEvent(task);
+        eventManager.fireEvent(event);
 
         return task;
     }
@@ -297,6 +309,9 @@ public class TaskService {
 
         tasksByProject.put(project, tasks);
         VaadinSession.getCurrent().setAttribute("tasksByProject", tasksByProject);
+
+        GettingTasksEvent event = new GettingTasksEvent(tasks);
+        eventManager.fireEvent(event);
 
         return tasks;
     }
