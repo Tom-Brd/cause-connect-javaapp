@@ -43,12 +43,15 @@ public class DashboardView extends VerticalLayout {
     }
 
     private void createTasksLayout(ArrayList<Task> tasks, AssociationService associationService, TaskService taskService, EventManager eventManager) {
-        add(new H2("Mes Tâches"));
+        H2 title = new H2("Mes Tâches");
+        title.getElement().getStyle().set("margin-top", "32px");
+        add(title);
 
         Button viewAllTasksButton;
         if (tasks.size() > 3) {
-            viewAllTasksButton = new Button("Voir plus...", e -> getUI().ifPresent(ui -> ui.navigate(TasksView.class)));
+            viewAllTasksButton = new Button("Voir plus", e -> getUI().ifPresent(ui -> ui.navigate(TasksView.class)));
             viewAllTasksButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+            viewAllTasksButton.getElement().getStyle().set("margin-left", "16px");
         } else {
             viewAllTasksButton = null;
         }
@@ -90,7 +93,7 @@ public class DashboardView extends VerticalLayout {
             projectModal.open();
         });
         createProjectButton.setIcon(VaadinIcon.PLUS.create());
-        createProjectButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        createProjectButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         add(createProjectButton);
 
 
@@ -98,6 +101,7 @@ public class DashboardView extends VerticalLayout {
         if (projects.size() > 3) {
             viewAllProjectsButton = new Button("Voir plus...", e -> getUI().ifPresent(ui -> ui.navigate(ProjectsView.class)));
             viewAllProjectsButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+            viewAllProjectsButton.getElement().getStyle().set("margin-left", "16px");
         } else {
             viewAllProjectsButton = null;
         }
@@ -119,7 +123,7 @@ public class DashboardView extends VerticalLayout {
 
             projectList.add(projectDiv);
             if (viewAllProjectsButton != null) projectList.add(viewAllProjectsButton);
-            projectList.setAlignItems(Alignment.CENTER);
+            projectList.setAlignItems(Alignment.STRETCH);
         });
 
         add(projectList);

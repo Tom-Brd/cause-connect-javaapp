@@ -36,7 +36,7 @@ public class ProjectsView extends VerticalLayout {
             projectModal.open();
         });
         createProjectButton.setIcon(VaadinIcon.PLUS.create());
-        createProjectButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        createProjectButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         add(createProjectButton);
 
         FlexLayout projectList = new FlexLayout();

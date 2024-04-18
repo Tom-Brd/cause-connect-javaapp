@@ -108,7 +108,8 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
             taskModal.open();
         });
         createTaskButton.setIcon(VaadinIcon.PLUS.create());
-        createTaskButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        createTaskButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        createTaskButton.getElement().getStyle().set("margin", "16px");
 
         kanbanView.add(createTaskButton);
 

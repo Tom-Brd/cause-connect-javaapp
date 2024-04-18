@@ -49,7 +49,7 @@ public class TasksView extends VerticalLayout {
                 taskModal.open();
             });
             createTaskButton.setIcon(VaadinIcon.PLUS.create());
-            createTaskButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+            createTaskButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             projectSection.add(createTaskButton);
 
             FlexLayout taskList = new FlexLayout();

@@ -1,6 +1,8 @@
 @import url('./main-layout.css');
+@import url('./views/plugins-view.css');
 @import url('./views/project-view.css');
-@import url('card-component.css');    html {
+@import url('card-component.css');
+html {
     --lumo-primary-color: #1677FF;
     --lumo-primary-color-50pct: #1677FF7F;
     --lumo-primary-color-10pct: #1677FF1A;
