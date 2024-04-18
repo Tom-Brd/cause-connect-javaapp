@@ -1,5 +1,6 @@
 package org.pat.causeconnect.ui.task;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -14,6 +15,9 @@ import org.pat.causeconnect.entity.Project;
 import org.pat.causeconnect.entity.User;
 import org.pat.causeconnect.entity.task.Task;
 import org.pat.causeconnect.entity.task.TaskStatus;
+import org.pat.causeconnect.plugin.events.EventManager;
+import org.pat.causeconnect.plugin.events.task.TaskCreateEvent;
+import org.pat.causeconnect.plugin.events.task.TaskUpdateEvent;
 import org.pat.causeconnect.service.AssociationService;
 import org.pat.causeconnect.service.task.TaskService;
 import org.pat.causeconnect.ui.utils.NotificationUtils;
@@ -25,22 +29,22 @@ import java.util.Arrays;
 public class TaskModal extends Dialog {
 
     private final boolean isEditMode;
-    private final Task task;
+    private Task task;
 
-    public TaskModal(Project project, AssociationService associationService, TaskService taskService) {
+    public TaskModal(Project project, AssociationService associationService, TaskService taskService, EventManager eventManager) {
         this.task = new Task();
         this.task.setProject(project);
         this.isEditMode = false;
-        buildLayout(associationService, taskService, project);
+        buildLayout(associationService, taskService, eventManager, project);
     }
 
-    public TaskModal(Task task, AssociationService associationService, TaskService taskService) {
+    public TaskModal(Task task, AssociationService associationService, TaskService taskService, EventManager eventManager) {
         this.task = task;
         this.isEditMode = true;
-        buildLayout(associationService, taskService, task.getProject());
+        buildLayout(associationService, taskService, eventManager, task.getProject());
     }
 
-    private void buildLayout(AssociationService associationService, TaskService taskService, Project project) {
+    private void buildLayout(AssociationService associationService, TaskService taskService, EventManager eventManager, Project project) {
         setModal(true);
         setCloseOnEsc(true);
         setCloseOnOutsideClick(true);
@@ -89,26 +93,50 @@ public class TaskModal extends Dialog {
         }
 
         Button saveButton = new Button(isEditMode ? "Enregistrer" : "Créer", e -> {
-            if (validateFields(titleField, userComboBox, descriptionField, dateTimePicker, statusComboBox)) {
-                task.setTitle(titleField.getValue());
-                task.setDescription(descriptionField.getValue());
-                task.setDeadline(java.util.Date.from(dateTimePicker.getValue().atZone(ZoneId.systemDefault()).toInstant()));
-                task.setResponsibleUser(members.stream().filter(user -> user.getFullName().equals(userComboBox.getValue())).findFirst().orElse(null));
+            if (validateFields(titleField, descriptionField, dateTimePicker, statusComboBox)) {
+                Task tempTask = new Task();
+
+                tempTask.setId(task.getId());
+                tempTask.setTitle(titleField.getValue());
+                tempTask.setDescription(descriptionField.getValue());
+                tempTask.setDeadline(java.util.Date.from(dateTimePicker.getValue().atZone(ZoneId.systemDefault()).toInstant()));
+                tempTask.setResponsibleUser(members.stream().filter(user -> user.getFullName().equals(userComboBox.getValue())).findFirst().orElse(null));
+                tempTask.setProject(project);
 
                 if (isEditMode) {
-                    task.setStatus(TaskStatus.valueOf(statusComboBox.getValue()));
-                    Task updatedTask = taskService.updateTask(task);
+                    tempTask.setStatus(TaskStatus.valueOf(statusComboBox.getValue()));
+                    TaskUpdateEvent taskUpdateEvent = new TaskUpdateEvent(task, tempTask, false);
+                    eventManager.fireEvent(taskUpdateEvent);
+
+                    if (taskUpdateEvent.isCancelled()) {
+                        return;
+                    }
+
+                    Task updatedTask = taskService.updateTask(tempTask);
                     if (updatedTask == null) {
                         return;
                     }
+                    task = updatedTask;
                 } else {
-                    Task createdTask = taskService.createTask(task);
+                    TaskCreateEvent taskCreateEvent = new TaskCreateEvent(tempTask, false);
+                    eventManager.fireEvent(taskCreateEvent);
+
+                    if (taskCreateEvent.isCancelled()) {
+                        return;
+                    }
+
+                    Task eventTask = taskCreateEvent.getTask();
+
+                    Task createdTask = taskService.createTask(eventTask);
                     if (createdTask == null) {
                         return;
                     }
-                    if (task.getResponsibleUser() != null) {
-                        taskService.assignTask(createdTask, task.getResponsibleUser());
+
+                    if (eventTask.getResponsibleUser() != null) {
+                        taskService.assignTask(createdTask, eventTask.getResponsibleUser());
+                        createdTask.setResponsibleUser(eventTask.getResponsibleUser());
                     }
+                    task = createdTask;
                     close();
                 }
             }
@@ -121,13 +149,12 @@ public class TaskModal extends Dialog {
         add(content);
     }
 
-    private boolean validateFields(TextField titleField, ComboBox<String> userComboBox, TextArea descriptionField, DateTimePicker dateTimePicker, ComboBox<String> statusComboBox) {
+    private boolean validateFields(TextField titleField, TextArea descriptionField, DateTimePicker dateTimePicker, ComboBox<String> statusComboBox) {
         titleField.setInvalid(titleField.isEmpty());
-        userComboBox.setInvalid(userComboBox.isEmpty());
         descriptionField.setInvalid(descriptionField.isEmpty());
         dateTimePicker.setInvalid(dateTimePicker.isEmpty());
         statusComboBox.setInvalid(statusComboBox.isEmpty());
 
-        return !titleField.isEmpty() && !userComboBox.isEmpty() && !descriptionField.isEmpty() && !dateTimePicker.isEmpty() && !statusComboBox.isEmpty();
+        return !titleField.isEmpty() && !descriptionField.isEmpty() && !dateTimePicker.isEmpty() && !statusComboBox.isEmpty();
     }
 }

@@ -1,5 +1,6 @@
 package org.pat.causeconnect.ui;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
@@ -24,25 +25,37 @@ import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.pat.causeconnect.entity.Theme;
 import org.pat.causeconnect.entity.User;
+import org.pat.causeconnect.plugin.HeaderPlugin;
+import org.pat.causeconnect.plugin.NavItemConfiguration;
+import org.pat.causeconnect.plugin.PluginLoader;
 import org.pat.causeconnect.service.SecurityService;
 import org.pat.causeconnect.service.theme.ThemeService;
+import org.pat.causeconnect.ui.plugin.PluginsView;
 import org.pat.causeconnect.ui.project.ProjectsView;
 import org.pat.causeconnect.ui.task.TasksView;
 import org.springframework.security.core.Authentication;
 
+import java.util.List;
 import java.util.Optional;
 
 public class MainLayout extends AppLayout implements BeforeEnterObserver {
     private H2 viewTitle;
+    private final SideNav sideNav;
+
+    private HorizontalLayout pluginContainer;
 
     private final SecurityService securityService;
     private final AccessAnnotationChecker accessChecker;
+    private final PluginLoader pluginLoader;
 
     private User user;
 
-    public MainLayout(SecurityService securityService, AccessAnnotationChecker accessChecker, ThemeService themeService) {
+    public MainLayout(SecurityService securityService, AccessAnnotationChecker accessChecker, ThemeService themeService, PluginLoader pluginLoader) {
         this.securityService = securityService;
         this.accessChecker = accessChecker;
+        this.pluginLoader = pluginLoader;
+
+        this.sideNav = createNavigation();
 
         Optional<User> userOptional = securityService.getAuthenticatedUser();
 
@@ -58,10 +71,15 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         setPrimarySection(Section.DRAWER);
         setTheme(themeService.getTheme());
         createHeader();
+        loadHeaderPlugins();
         createDrawer();
     }
 
     private void setTheme(Theme theme) {
+        if (theme == null) {
+            return;
+        }
+        
         String primaryColor = theme.getColor();
         String primaryColor50pct = theme.getColor50pct();
         String primaryColor10pct = theme.getColor10pct();
@@ -80,9 +98,13 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
 
         viewTitle = new H2();
         viewTitle.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
+        viewTitle.getStyle().set("white-space", "nowrap");
 
-        Div spacer = new Div();
-        spacer.getStyle().set("flex-grow", "1");
+        pluginContainer = new HorizontalLayout();
+        pluginContainer.setWidthFull();
+        pluginContainer.setAlignItems(FlexComponent.Alignment.CENTER);
+        pluginContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER );
+        pluginContainer.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
 
         Button closeButton = new Button("Quitter", e -> securityService.shutdown());
         closeButton.setIcon(VaadinIcon.ARROW_RIGHT.create());
@@ -94,10 +116,16 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         headerLayout.setWidthFull();
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        headerLayout.add(toggle, viewTitle, spacer, closeButton);
-        headerLayout.setFlexGrow(1, spacer);
+        headerLayout.add(toggle, viewTitle, pluginContainer, closeButton);
 
         addToNavbar(true, headerLayout);
+    }
+
+    private void loadHeaderPlugins() {
+        List<HeaderPlugin> headerPlugins = pluginLoader.getAllHeaderPlugins();
+        for (HeaderPlugin plugin : headerPlugins) {
+            plugin.addToHeader(pluginContainer);
+        }
     }
 
     private void createDrawer() {
@@ -106,9 +134,22 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         appName.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
         Header header = new Header(appName);
 
-        Scroller scroller = new Scroller(createNavigation());
+        List<NavItemConfiguration> navItems = pluginLoader.getAllNavItems();
+        for (NavItemConfiguration navItem : navItems) {
+            if (accessChecker.hasAccess(navItem.viewClass())) {
+                System.out.println("Adding nav item");
+                sideNav.addItem(new SideNavItem(navItem.title(), navItem.viewClass(), navItem.icon().create()));
+            }
+        }
+
+        Scroller scroller = new Scroller(sideNav);
+        System.out.println("je reconstruis le drawer");
 
         addToDrawer(header, scroller, createFooter());
+    }
+
+    public SideNav getNavigation() {
+        return sideNav;
     }
 
     private SideNav createNavigation() {
@@ -124,6 +165,10 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
 
         if (accessChecker.hasAccess(TasksView.class)) {
             nav.addItem(new SideNavItem("Mes tâches", TasksView.class, VaadinIcon.BULLETS.create()));
+        }
+
+        if (accessChecker.hasAccess(PluginsView.class)) {
+            nav.addItem(new SideNavItem("Plugins", PluginsView.class, VaadinIcon.PUZZLE_PIECE.create()));
         }
 
         return nav;

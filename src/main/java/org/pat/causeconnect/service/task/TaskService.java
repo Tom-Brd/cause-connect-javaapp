@@ -5,10 +5,12 @@ import org.pat.causeconnect.entity.Project;
 import org.pat.causeconnect.entity.User;
 import org.pat.causeconnect.entity.task.Task;
 import org.pat.causeconnect.entity.task.TaskStatus;
+import org.pat.causeconnect.plugin.events.EventManager;
+import org.pat.causeconnect.plugin.events.task.GettingMyTasksEvent;
+import org.pat.causeconnect.plugin.events.task.GettingSingleTaskEvent;
+import org.pat.causeconnect.plugin.events.task.GettingTasksEvent;
 import org.pat.causeconnect.service.InternetCheckService;
-import org.pat.causeconnect.service.project.ProjectByIdResponse;
 import org.pat.causeconnect.ui.utils.NotificationUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -27,8 +29,13 @@ public class TaskService {
     @Value("${base.url}")
     private String baseUrl;
 
-    @Autowired
-    private InternetCheckService internetCheckService;
+    private final InternetCheckService internetCheckService;
+    private final EventManager eventManager;
+
+    public TaskService(InternetCheckService internetCheckService, EventManager eventManager) {
+        this.internetCheckService = internetCheckService;
+        this.eventManager = eventManager;
+    }
 
     public ArrayList<Task> getMyTasks() {
         if (!internetCheckService.hasInternetConnection()) {
@@ -68,6 +75,9 @@ public class TaskService {
 
         MyTasksResponse myTasksResponse = new MyTasksResponse(tasks);
         VaadinSession.getCurrent().setAttribute(MyTasksResponse.class, myTasksResponse);
+
+        GettingMyTasksEvent event = new GettingMyTasksEvent(tasks);
+        eventManager.fireEvent(event);
 
         return tasks;
     }
@@ -109,6 +119,9 @@ public class TaskService {
 
         tasksById.put(taskId, task);
         VaadinSession.getCurrent().setAttribute("tasksById", tasksById);
+
+        GettingSingleTaskEvent event = new GettingSingleTaskEvent(task);
+        eventManager.fireEvent(event);
 
         return task;
     }
@@ -153,8 +166,6 @@ public class TaskService {
             return null;
         }
 
-        System.out.println(task.getId());
-        System.out.println(task.getProject().getId());
         RestTemplate restTemplate = new RestTemplate();
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
         restTemplate.setRequestFactory(requestFactory);
@@ -168,15 +179,14 @@ public class TaskService {
 
         DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT;
         String formattedDate = formatter.format(task.getDeadline().toInstant().atOffset(ZoneOffset.UTC));
-        System.out.println(formattedDate);
-        TaskUpdateRequest taskRequest = new TaskUpdateRequest(
-                task.getTitle(),
-                task.getDescription(),
-                task.getStatus().name().toLowerCase(),
-                formattedDate,
-                task.getProject().getId(),
-                task.getResponsibleUser().getId()
-        );
+
+        TaskUpdateRequest taskRequest = new TaskUpdateRequest();
+        taskRequest.setTitle(task.getTitle());
+        taskRequest.setDescription(task.getDescription());
+        taskRequest.setStatus(task.getStatus().name().toLowerCase());
+        taskRequest.setDeadline(formattedDate);
+        taskRequest.setProjectId(task.getProject().getId());
+        taskRequest.setResponsibleUserId(task.getResponsibleUser() != null ? task.getResponsibleUser().getId() : "");
 
         HttpEntity<TaskUpdateRequest> entity = new HttpEntity<>(taskRequest, headers);
 
@@ -211,7 +221,6 @@ public class TaskService {
         // convert Date to this format 2024-04-08T13:40:34.457Z
         DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT;
         String formattedDate = formatter.format(task.getDeadline().toInstant().atOffset(ZoneOffset.UTC));
-        System.out.println(formattedDate);
         TaskCreateRequest taskRequest = new TaskCreateRequest(
                 task.getTitle(),
                 task.getDescription(),
@@ -300,6 +309,9 @@ public class TaskService {
 
         tasksByProject.put(project, tasks);
         VaadinSession.getCurrent().setAttribute("tasksByProject", tasksByProject);
+
+        GettingTasksEvent event = new GettingTasksEvent(tasks);
+        eventManager.fireEvent(event);
 
         return tasks;
     }

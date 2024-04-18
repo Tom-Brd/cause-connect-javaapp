@@ -3,12 +3,10 @@ package org.pat.causeconnect.ui.project;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEventListener;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dnd.DropTarget;
-import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -26,6 +24,8 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import org.pat.causeconnect.entity.Project;
 import org.pat.causeconnect.entity.task.Task;
 import org.pat.causeconnect.entity.task.TaskStatus;
+import org.pat.causeconnect.plugin.events.EventManager;
+import org.pat.causeconnect.plugin.events.task.TaskMoveEvent;
 import org.pat.causeconnect.service.AssociationService;
 import org.pat.causeconnect.service.project.ProjectService;
 import org.pat.causeconnect.service.task.TaskService;
@@ -52,14 +52,16 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
     private final ProjectService projectService;
     private final TaskService taskService;
     private final AssociationService associationService;
+    private final EventManager eventManager;
 
     private String projectId;
     private Project project;
 
-    public ProjectView(ProjectService projectService, TaskService taskService, AssociationService associationService) {
+    public ProjectView(ProjectService projectService, TaskService taskService, AssociationService associationService, EventManager eventManager) {
         this.projectService = projectService;
         this.taskService = taskService;
         this.associationService = associationService;
+        this.eventManager = eventManager;
 
         kanbanView.setWidthFull();
 
@@ -102,7 +104,7 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
         kanbanView.removeAll();
 
         Button createTaskButton = new Button("Créer une tâche", e -> {
-            TaskModal taskModal = new TaskModal(project, associationService, taskService);
+            TaskModal taskModal = new TaskModal(project, associationService, taskService, eventManager);
             taskModal.open();
         });
         createTaskButton.setIcon(VaadinIcon.PLUS.create());
@@ -147,9 +149,16 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
                     return;
                 }
 
-                task.setStatus(status);
+                TaskMoveEvent taskMoveEvent = new TaskMoveEvent(task, status, false);
+                eventManager.fireEvent(taskMoveEvent);
 
-                Task updatedTask = taskService.updateTask(task);
+                if (taskMoveEvent.isCancelled()) {
+                    return;
+                }
+
+                task.setStatus(taskMoveEvent.getNewStatus());
+
+                Task updatedTask = taskService.updateTask(taskMoveEvent.getTask());
                 if (updatedTask == null) {
                     return;
                 }
@@ -158,7 +167,7 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
                 previousParent.remove(card);
 
                 column.add(card);
-                NotificationUtils.createNotification("Tâche déplacée au statut " + status, true).open();
+                NotificationUtils.createNotification("Tâche déplacée au statut " + taskMoveEvent.getNewStatus(), true).open();
             });
         });
     }
@@ -171,7 +180,7 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
     private void addTaskToColumn(Task task) {
         CardComponentDraggable card = new CardComponentDraggable(task.getTitle(), task.getDescription());
         ComponentEventListener<AttachEvent> listener = event -> card.addClickListener(e -> {
-            TaskModal taskModal = new TaskModal(task, associationService, taskService);
+            TaskModal taskModal = new TaskModal(task, associationService, taskService, eventManager);
             taskModal.open();
         });
         card.addAttachListener(listener);

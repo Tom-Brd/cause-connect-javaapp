@@ -30,7 +30,6 @@ public class AssociationService {
 
     public Association[] getAssociations() {
         if (!internetCheckService.hasInternetConnection()) {
-            NotificationUtils.createNotification("Pas de connexion Internet - Impossible de se connecter", false).open();
             return null;
         }
 
