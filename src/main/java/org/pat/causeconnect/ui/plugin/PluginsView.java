@@ -4,6 +4,7 @@ import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -37,6 +38,11 @@ public class PluginsView extends VerticalLayout {
         plugins = pluginService.getPlugins();
         setSizeFull();
         addClassName("plugins-view");
+
+        if (plugins.isEmpty()) {
+            add(new Div("Aucun plugin à afficher"));
+            return;
+        }
 
         configureFilters();
         add(createTopBar(), createGrid());

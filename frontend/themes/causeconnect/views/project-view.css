@@ -4,17 +4,21 @@
     border-radius: 6px;
     border: 1px solid rgba(5, 5, 5, 0.06);
     background-color: #F5F5F5;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
 }
 
-.card {
+.kanban-column > .card {
     background-color: white;
     border: 1px solid rgba(5, 5, 5, 0.06);
     transition: 0.3s;
-    width: 100%;
+    width: 90%;
     margin: 0 8px;
+    align-self: center;
 }
 
-.card:hover {
+.kanban-column > .card:hover {
     box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.08),
     0 3px 6px -4px rgba(0, 0, 0, 0.12),
     0 9px 28px 8px rgba(0, 0, 0, 0.05);

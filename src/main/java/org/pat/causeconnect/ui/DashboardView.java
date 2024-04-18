@@ -4,6 +4,7 @@ import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
@@ -56,6 +57,11 @@ public class DashboardView extends VerticalLayout {
         title.getElement().getStyle().set("margin-top", "32px");
         add(title);
 
+        if (tasks.isEmpty()) {
+            add(new Div("Aucune tâche à afficher"));
+            return;
+        }
+
         Button viewAllTasksButton;
         if (tasks.size() > 3) {
             viewAllTasksButton = new Button("Voir plus", e -> getUI().ifPresent(ui -> ui.navigate(TasksView.class)));
@@ -97,6 +103,11 @@ public class DashboardView extends VerticalLayout {
 
     private void createProjectsLayout(ArrayList<Project> projects, ProjectService projectService) {
         add(new H2("Mes Projets"));
+
+        if (projects.isEmpty()) {
+            add(new Div("Aucun projet à afficher"));
+            return;
+        }
 
         Button createProjectButton = new Button("Créer un projet", e -> {
             ProjectModal projectModal = new ProjectModal(projectService, onCompletion);

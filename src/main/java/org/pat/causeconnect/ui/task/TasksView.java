@@ -6,6 +6,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
@@ -42,6 +43,11 @@ public class TasksView extends VerticalLayout {
         Map<Project, List<Task>> taskByProject = taskService.getMyTasks().stream()
                 .sorted(Comparator.comparing(Task::getDeadline))
                 .collect(Collectors.groupingBy(Task::getProject));
+
+        if (taskByProject.isEmpty()) {
+            add(new Div("Aucune tâche à afficher"));
+            return;
+        }
 
         taskByProject.forEach((project, tasks) -> {
             Details projectSection = new Details();
