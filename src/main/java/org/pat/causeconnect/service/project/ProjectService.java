@@ -130,4 +130,22 @@ public class ProjectService {
 
         return response.getBody();
     }
+
+    public boolean deleteProject(String projectId) {
+        if (!internetCheckService.hasInternetConnection()) {
+            NotificationUtils.createNotification("Pas de connexion Internet, impossible de supprimer le projet", false).open();
+        }
+
+        RestTemplate restTemplate = new RestTemplate();
+        String url = baseUrl + "/projects/" + projectId;
+        String token = VaadinSession.getCurrent().getAttribute("token").toString();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<Project> response = restTemplate.exchange(url, HttpMethod.DELETE, entity, Project.class);
+
+        return response.getStatusCode().equals(HttpStatus.OK);
+    }
 }

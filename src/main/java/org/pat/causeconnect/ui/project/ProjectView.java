@@ -246,7 +246,20 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
         submitButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         submitButton.setWidthFull();
 
-        return new VerticalLayout(nameField, dateLayout, descriptionField, submitButton);
+        Button deleteButton = new Button("Supprimer", VaadinIcon.TRASH.create(), buttonClickEvent -> {
+            boolean isDeleted = projectService.deleteProject(project.getId());
+            if (isDeleted) {
+                getUI().ifPresent(ui -> ui.getPage().reload());
+            } else {
+                NotificationUtils.createNotification("Une erreur est survenue lors de la suppression du projet", false).open();
+            }
+        });
+        deleteButton.getElement().getStyle().set("color", "white");
+        deleteButton.getElement().getStyle().set("background-color", "#FF4D4F");
+        deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON);
+        deleteButton.setWidthFull();
+
+        return new VerticalLayout(nameField, dateLayout, descriptionField, submitButton, deleteButton);
     }
 
     private void saveProjectConfiguration(String name, String description, Date startDate, Date endDate) {
