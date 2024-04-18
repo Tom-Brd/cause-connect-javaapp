@@ -112,12 +112,23 @@ public class PluginLoader {
         CauseConnectPlugin causeConnectPlugin = pluginInstances.get(pluginFileName);
         if (causeConnectPlugin != null) {
             try {
+                causeConnectPlugin.unload();
+
+                for (ViewConfiguration viewConfiguration : causeConnectPlugin.getViews()) {
+                    viewConfiguration.unregisterViews();
+                }
+
                 URLClassLoader classLoader = pluginLoaders.get(pluginFileName);
+
                 classLoader.close();
+
+                eventManager.unregisterListener(causeConnectPlugin);
 
                 pluginInstances.remove(pluginFileName);
                 pluginLoaders.remove(pluginFileName);
                 pluginsList.remove(causeConnectPlugin);
+
+                System.gc();
 
                 NotificationUtils.createNotification("Plugin déchargé avec succès", true).open();
             } catch (Exception e) {

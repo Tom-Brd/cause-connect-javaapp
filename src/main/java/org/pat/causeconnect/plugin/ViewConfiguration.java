@@ -8,10 +8,12 @@ public record ViewConfiguration(
         Class<? extends Component> viewClass) {
 
     public void registerViews() {
-        System.out.println("In registerViews");
         RouteConfiguration routeConfiguration = RouteConfiguration.forApplicationScope();
-        System.out.println("routeConfiguration: " + routeConfiguration);
         routeConfiguration.setAnnotatedRoute(viewClass);
-        System.out.println("routeConfiguration UPDATE: " + routeConfiguration);
+    }
+
+    public void unregisterViews() {
+        RouteConfiguration routeConfiguration = RouteConfiguration.forApplicationScope();
+        routeConfiguration.removeRoute(route);
     }
 }

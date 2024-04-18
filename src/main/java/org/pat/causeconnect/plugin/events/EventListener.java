@@ -1,7 +1,8 @@
 package org.pat.causeconnect.plugin.events;
 
-import jdk.jfr.Event;
+import org.pat.causeconnect.plugin.events.task.CauseConnectEvent;
 
-public interface EventListener<T extends Event> {
+public interface EventListener<T extends CauseConnectEvent>{
     void onEvent(T event);
+
 }

@@ -8,6 +8,9 @@ import java.util.Collections;
 public interface CauseConnectPlugin {
     void load(EventManager eventManager);
 
+    default void unload() {
+    }
+
     default Collection<ViewConfiguration> getViews() {
         return Collections.emptyList();
     }
