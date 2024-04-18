@@ -20,6 +20,7 @@ import org.pat.causeconnect.service.AssociationService;
 import org.pat.causeconnect.service.task.TaskService;
 import org.pat.causeconnect.ui.MainLayout;
 import org.pat.causeconnect.ui.component.CardComponent;
+import org.pat.causeconnect.ui.project.ProjectView;
 import org.pat.causeconnect.ui.utils.NotificationUtils;
 
 import java.text.SimpleDateFormat;
@@ -47,8 +48,13 @@ public class TasksView extends VerticalLayout {
             projectSection.setSummaryText(project.getName());
             projectSection.setOpened(true);
 
+            Consumer<String> onCompletion = message -> {
+                NotificationUtils.createNotification(message, true).open();
+                getUI().ifPresent(ui -> ui.getPage().reload());
+            };
+
             Button createTaskButton = new Button("Créer une tâche", e -> {
-                TaskModal taskModal = new TaskModal(project, associationService, taskService, eventManager);
+                TaskModal taskModal = new TaskModal(project, associationService, taskService, eventManager, onCompletion);
                 taskModal.open();
             });
             createTaskButton.setIcon(VaadinIcon.PLUS.create());
@@ -64,10 +70,6 @@ public class TasksView extends VerticalLayout {
                 Date endTime = task.getDeadline();
                 SimpleDateFormat formatter = new SimpleDateFormat("dd MMMM", Locale.FRENCH);
                 CardComponent taskDiv = new CardComponent(task.getTitle(), "Échéance : " + formatter.format(endTime));
-                Consumer<String> onCompletion = message -> {
-                    NotificationUtils.createNotification(message, true).open();
-                    getUI().ifPresent(ui -> ui.getPage().reload());
-                };
                 ComponentEventListener<AttachEvent> listener = event -> taskDiv.addClickListener(e -> {
                     TaskModal taskModal = new TaskModal(task, associationService, taskService, eventManager, onCompletion);
                     taskModal.open();

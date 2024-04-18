@@ -35,7 +35,14 @@ import java.util.function.Consumer;
 @AnonymousAllowed
 @PageTitle("Tableau de bord")
 public class DashboardView extends VerticalLayout {
+
+    private final Consumer<String> onCompletion;
+
     public DashboardView(ProjectService projectService, TaskService taskService, AssociationService associationService, EventManager eventManager) {
+        onCompletion = message -> {
+            NotificationUtils.createNotification(message, true).open();
+            getUI().ifPresent(ui -> ui.getPage().reload());
+        };
         setSizeFull();
         ArrayList<Project> projects = projectService.getMyProjects();
         ArrayList<Task> tasks = taskService.getMyTasks();
@@ -74,10 +81,7 @@ public class DashboardView extends VerticalLayout {
             Date endTime = task.getDeadline();
             SimpleDateFormat formatter = new SimpleDateFormat("dd MMMM", Locale.FRENCH);
             CardComponent taskDiv = new CardComponent(task.getProject().getName() + " : " +task.getTitle(), "Échéance : " + formatter.format(endTime));
-            Consumer<String> onCompletion = message -> {
-                NotificationUtils.createNotification(message, true).open();
-                getUI().ifPresent(ui -> ui.getPage().reload());
-            };
+
             ComponentEventListener<AttachEvent> listener = event -> taskDiv.addClickListener(e -> {
                 TaskModal taskModal = new TaskModal(task, associationService, taskService, eventManager, onCompletion);
                 taskModal.open();
@@ -95,7 +99,7 @@ public class DashboardView extends VerticalLayout {
         add(new H2("Mes Projets"));
 
         Button createProjectButton = new Button("Créer un projet", e -> {
-            ProjectModal projectModal = new ProjectModal(projectService);
+            ProjectModal projectModal = new ProjectModal(projectService, onCompletion);
             projectModal.open();
         });
         createProjectButton.setIcon(VaadinIcon.PLUS.create());

@@ -15,10 +15,12 @@ import org.pat.causeconnect.entity.Project;
 import org.pat.causeconnect.service.project.ProjectService;
 import org.pat.causeconnect.ui.MainLayout;
 import org.pat.causeconnect.ui.component.CardComponent;
+import org.pat.causeconnect.ui.utils.NotificationUtils;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Route(value = "projects", layout = MainLayout.class)
 @AnonymousAllowed
@@ -30,9 +32,12 @@ public class ProjectsView extends VerticalLayout {
         ArrayList<Project> projects = projectService.getMyProjects();
 
         add(new H2("Mes Projets"));
-
+        Consumer<String> onCompletion = message -> {
+            NotificationUtils.createNotification(message, true).open();
+            getUI().ifPresent(ui -> ui.getPage().reload());
+        };
         Button createProjectButton = new Button("Créer un projet", e -> {
-            ProjectModal projectModal = new ProjectModal(projectService);
+            ProjectModal projectModal = new ProjectModal(projectService, onCompletion);
             projectModal.open();
         });
         createProjectButton.setIcon(VaadinIcon.PLUS.create());

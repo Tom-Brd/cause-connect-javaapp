@@ -20,7 +20,6 @@ import org.pat.causeconnect.plugin.events.task.TaskCreateEvent;
 import org.pat.causeconnect.plugin.events.task.TaskUpdateEvent;
 import org.pat.causeconnect.service.AssociationService;
 import org.pat.causeconnect.service.task.TaskService;
-import org.pat.causeconnect.ui.utils.NotificationUtils;
 
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -33,10 +32,11 @@ public class TaskModal extends Dialog {
     private Task task;
     private Consumer<String> onCompletion;
 
-    public TaskModal(Project project, AssociationService associationService, TaskService taskService, EventManager eventManager) {
+    public TaskModal(Project project, AssociationService associationService, TaskService taskService, EventManager eventManager, Consumer<String> callback) {
         this.task = new Task();
         this.task.setProject(project);
         this.isEditMode = false;
+        this.onCompletion = callback;
         buildLayout(associationService, taskService, eventManager, project);
     }
 
@@ -140,11 +140,10 @@ public class TaskModal extends Dialog {
                         createdTask.setResponsibleUser(eventTask.getResponsibleUser());
                     }
                     task = createdTask;
-                    close();
                 }
             }
-
-            NotificationUtils.createNotification("Modification appliquées !", true).open();
+            close();
+            onCompletion.accept(isEditMode ? "La tâche a été modifiée avec succès !" : "La tâche a été créée avec succès !");
         });
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 

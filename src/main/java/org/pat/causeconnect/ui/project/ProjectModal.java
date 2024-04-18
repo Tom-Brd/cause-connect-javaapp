@@ -15,9 +15,10 @@ import org.pat.causeconnect.ui.utils.NotificationUtils;
 
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.function.Consumer;
 
 public class ProjectModal extends Dialog {
-    public ProjectModal(ProjectService projectService) {
+    public ProjectModal(ProjectService projectService, Consumer<String> callback) {
         setModal(true);
         setCloseOnEsc(true);
         setCloseOnOutsideClick(true);
@@ -62,10 +63,9 @@ public class ProjectModal extends Dialog {
                 if (projectCreated == null) {
                     NotificationUtils.createNotification("Une erreur est survenue lors de la création du projet", false).open();
                 } else {
-                    NotificationUtils.createNotification("Le projet a bien été créé !", true).open();
+                    close();
+                    callback.accept("Projet créé avec succès");
                 }
-
-                close();
             }
         });
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
