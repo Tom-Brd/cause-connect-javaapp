@@ -4,6 +4,7 @@ import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
@@ -32,6 +33,11 @@ public class ProjectsView extends VerticalLayout {
         ArrayList<Project> projects = projectService.getMyProjects();
 
         add(new H2("Mes Projets"));
+
+        if (projects.isEmpty()) {
+            add(new Div("Aucun projet à afficher"));
+            return;
+        }
         Consumer<String> onCompletion = message -> {
             NotificationUtils.createNotification(message, true).open();
             getUI().ifPresent(ui -> ui.getPage().reload());
