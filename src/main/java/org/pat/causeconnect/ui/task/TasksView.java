@@ -2,6 +2,7 @@ package org.pat.causeconnect.ui.task;
 
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.details.Details;
@@ -19,9 +20,11 @@ import org.pat.causeconnect.service.AssociationService;
 import org.pat.causeconnect.service.task.TaskService;
 import org.pat.causeconnect.ui.MainLayout;
 import org.pat.causeconnect.ui.component.CardComponent;
+import org.pat.causeconnect.ui.utils.NotificationUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Route(value = "tasks", layout = MainLayout.class)
@@ -61,8 +64,12 @@ public class TasksView extends VerticalLayout {
                 Date endTime = task.getDeadline();
                 SimpleDateFormat formatter = new SimpleDateFormat("dd MMMM", Locale.FRENCH);
                 CardComponent taskDiv = new CardComponent(task.getTitle(), "Échéance : " + formatter.format(endTime));
+                Consumer<String> onCompletion = message -> {
+                    NotificationUtils.createNotification(message, true).open();
+                    getUI().ifPresent(ui -> ui.getPage().reload());
+                };
                 ComponentEventListener<AttachEvent> listener = event -> taskDiv.addClickListener(e -> {
-                    TaskModal taskModal = new TaskModal(task, associationService, taskService, eventManager);
+                    TaskModal taskModal = new TaskModal(task, associationService, taskService, eventManager, onCompletion);
                     taskModal.open();
                 });
                 taskDiv.addAttachListener(listener);
