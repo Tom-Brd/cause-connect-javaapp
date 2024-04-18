@@ -53,6 +53,7 @@ public class PluginsView extends VerticalLayout {
 
     private void configureFilters() {
         nameFilter = new TextField("Nom");
+        nameFilter.setPrefixComponent(VaadinIcon.SEARCH.create());
         nameFilter.setClearButtonVisible(true);
         nameFilter.setValueChangeMode(ValueChangeMode.LAZY);
         nameFilter.setWidth("25%");
@@ -63,6 +64,7 @@ public class PluginsView extends VerticalLayout {
         });
 
         authorFilter = new TextField("Développeur");
+        authorFilter.setPrefixComponent(VaadinIcon.SEARCH.create());
         authorFilter.setClearButtonVisible(true);
         authorFilter.setValueChangeMode(ValueChangeMode.LAZY);
         authorFilter.setWidth("25%");

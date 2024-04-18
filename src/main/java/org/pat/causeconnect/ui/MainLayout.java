@@ -160,7 +160,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         }
 
         if (accessChecker.hasAccess(ProjectsView.class)) {
-            nav.addItem(new SideNavItem("Mes projets", ProjectsView.class, VaadinIcon.CALENDAR_CLOCK.create()));
+            nav.addItem(new SideNavItem("Mes projets", ProjectsView.class, VaadinIcon.CALENDAR.create()));
         }
 
         if (accessChecker.hasAccess(TasksView.class)) {
