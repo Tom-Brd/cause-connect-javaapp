@@ -7,6 +7,7 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datetimepicker.DateTimePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
@@ -145,7 +146,15 @@ public class TaskModal extends Dialog {
         });
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-        content.add(title, titleAndUser, statusComboBox, dateTimePicker, descriptionField, saveButton);
+        Button deleteButton = new Button("Supprimer", VaadinIcon.TRASH.create(), e -> {
+            taskService.deleteTask(task);
+            getUI().ifPresent(ui -> ui.getPage().reload());
+        });
+        deleteButton.getElement().getStyle().set("color", "white");
+        deleteButton.getElement().getStyle().set("background-color", "#FF4D4F");
+        deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON);
+
+        content.add(title, titleAndUser, statusComboBox, dateTimePicker, descriptionField, saveButton, deleteButton);
         add(content);
     }
 
