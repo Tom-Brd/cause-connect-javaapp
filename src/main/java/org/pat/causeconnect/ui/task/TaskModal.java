@@ -140,11 +140,9 @@ public class TaskModal extends Dialog {
                         createdTask.setResponsibleUser(eventTask.getResponsibleUser());
                     }
                     task = createdTask;
-                    close();
                 }
+                getUI().ifPresent(ui -> ui.getPage().reload());
             }
-
-            NotificationUtils.createNotification("Modification appliquées !", true).open();
         });
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 

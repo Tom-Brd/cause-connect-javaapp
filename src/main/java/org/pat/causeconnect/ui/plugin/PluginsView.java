@@ -91,11 +91,7 @@ public class PluginsView extends VerticalLayout {
         if (isPluginInstalled) {
             Button deleteButton = new Button("Supprimer", VaadinIcon.TRASH.create(), click -> {
                 pluginService.deletePlugin(plugin);
-                getUI().ifPresent(ui -> ui.access(() -> {
-                    updateList();
-                    ui.push();
-                }));
-                NotificationUtils.createNotification("Plugin supprimé", true).open();
+                getUI().ifPresent(ui -> ui.getPage().reload());
             });
             deleteButton.getElement().getStyle().set("color", "white");
             deleteButton.getElement().getStyle().set("background-color", "#FF4D4F");
@@ -104,11 +100,7 @@ public class PluginsView extends VerticalLayout {
         }
         return new Button("Télécharger", click -> {
             pluginService.installPlugin(plugin);
-            getUI().ifPresent(ui -> ui.access(() -> {
-                updateList();
-                ui.push();
-            }));
-            NotificationUtils.createNotification("Calling API for " + plugin.getName(), true).open();
+            getUI().ifPresent(ui -> ui.getPage().reload());
         });
     }
 

@@ -62,7 +62,7 @@ public class ProjectModal extends Dialog {
                 if (projectCreated == null) {
                     NotificationUtils.createNotification("Une erreur est survenue lors de la création du projet", false).open();
                 } else {
-                    NotificationUtils.createNotification("Le projet a bien été créé !", true).open();
+                    getUI().ifPresent(ui -> ui.getPage().reload());
                 }
 
                 close();

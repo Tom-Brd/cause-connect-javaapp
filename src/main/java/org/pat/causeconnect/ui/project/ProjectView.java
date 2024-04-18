@@ -170,7 +170,7 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
                 previousParent.remove(card);
 
                 column.add(card);
-                NotificationUtils.createNotification("Tâche déplacée au statut " + taskMoveEvent.getNewStatus(), true).open();
+                getUI().ifPresent(ui -> ui.getPage().reload());
             });
         });
     }
