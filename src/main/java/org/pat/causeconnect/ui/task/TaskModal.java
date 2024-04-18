@@ -16,6 +16,7 @@ import org.pat.causeconnect.entity.User;
 import org.pat.causeconnect.entity.task.Task;
 import org.pat.causeconnect.entity.task.TaskStatus;
 import org.pat.causeconnect.plugin.events.EventManager;
+import org.pat.causeconnect.plugin.events.task.TaskCreateEvent;
 import org.pat.causeconnect.plugin.events.task.TaskUpdateEvent;
 import org.pat.causeconnect.service.AssociationService;
 import org.pat.causeconnect.service.task.TaskService;
@@ -117,16 +118,25 @@ public class TaskModal extends Dialog {
                     }
                     task = updatedTask;
                 } else {
-                    System.out.println("Creating task");
-                    Task createdTask = taskService.createTask(tempTask);
+                    TaskCreateEvent taskCreateEvent = new TaskCreateEvent(tempTask, false);
+                    eventManager.fireEvent(taskCreateEvent);
+
+                    if (taskCreateEvent.isCancelled()) {
+                        return;
+                    }
+
+                    Task eventTask = taskCreateEvent.getTask();
+
+                    Task createdTask = taskService.createTask(eventTask);
                     if (createdTask == null) {
                         return;
                     }
+
                     System.out.println(tempTask.getResponsibleUser());
-                    if (tempTask.getResponsibleUser() != null) {
+                    if (eventTask.getResponsibleUser() != null) {
                         System.out.println("Assigning task to user");
-                        taskService.assignTask(createdTask, tempTask.getResponsibleUser());
-                        createdTask.setResponsibleUser(tempTask.getResponsibleUser());
+                        taskService.assignTask(createdTask, eventTask.getResponsibleUser());
+                        createdTask.setResponsibleUser(eventTask.getResponsibleUser());
                     }
                     task = createdTask;
                     close();
