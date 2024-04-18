@@ -25,9 +25,11 @@ import org.pat.causeconnect.ui.project.ProjectsView;
 import org.pat.causeconnect.ui.task.TaskModal;
 import org.pat.causeconnect.ui.task.TaskView;
 import org.pat.causeconnect.ui.task.TasksView;
+import org.pat.causeconnect.ui.utils.NotificationUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.Consumer;
 
 @Route(value = "", layout = MainLayout.class)
 @AnonymousAllowed
@@ -72,8 +74,12 @@ public class DashboardView extends VerticalLayout {
             Date endTime = task.getDeadline();
             SimpleDateFormat formatter = new SimpleDateFormat("dd MMMM", Locale.FRENCH);
             CardComponent taskDiv = new CardComponent(task.getProject().getName() + " : " +task.getTitle(), "Échéance : " + formatter.format(endTime));
+            Consumer<String> onCompletion = message -> {
+                NotificationUtils.createNotification(message, true).open();
+                getUI().ifPresent(ui -> ui.getPage().reload());
+            };
             ComponentEventListener<AttachEvent> listener = event -> taskDiv.addClickListener(e -> {
-                TaskModal taskModal = new TaskModal(task, associationService, taskService, eventManager);
+                TaskModal taskModal = new TaskModal(task, associationService, taskService, eventManager, onCompletion);
                 taskModal.open();
             });
             taskDiv.addAttachListener(listener);

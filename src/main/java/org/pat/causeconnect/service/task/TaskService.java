@@ -315,4 +315,23 @@ public class TaskService {
 
         return tasks;
     }
+
+    public boolean deleteTask(Task task) {
+        if (!internetCheckService.hasInternetConnection()) {
+            NotificationUtils.createNotification("Pas de connexion Internet - La tâche n'a pas pu être supprimée", false).open();
+            return false;
+        }
+
+        RestTemplate restTemplate = new RestTemplate();
+        String url = baseUrl + "/tasks/" + task.getId();
+        String token = VaadinSession.getCurrent().getAttribute("token").toString();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<TaskResponse> response = restTemplate.exchange(url, HttpMethod.DELETE, entity, TaskResponse.class);
+
+        return response.getStatusCode().equals(HttpStatus.OK);
+    }
 }

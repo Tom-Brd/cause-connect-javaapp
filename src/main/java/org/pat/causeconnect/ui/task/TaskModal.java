@@ -1,12 +1,12 @@
 package org.pat.causeconnect.ui.task;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datetimepicker.DateTimePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
@@ -25,11 +25,13 @@ import org.pat.causeconnect.ui.utils.NotificationUtils;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 public class TaskModal extends Dialog {
 
     private final boolean isEditMode;
     private Task task;
+    private Consumer<String> onCompletion;
 
     public TaskModal(Project project, AssociationService associationService, TaskService taskService, EventManager eventManager) {
         this.task = new Task();
@@ -38,9 +40,10 @@ public class TaskModal extends Dialog {
         buildLayout(associationService, taskService, eventManager, project);
     }
 
-    public TaskModal(Task task, AssociationService associationService, TaskService taskService, EventManager eventManager) {
+    public TaskModal(Task task, AssociationService associationService, TaskService taskService, EventManager eventManager, Consumer<String> callback) {
         this.task = task;
         this.isEditMode = true;
+        this.onCompletion = callback;
         buildLayout(associationService, taskService, eventManager, task.getProject());
     }
 
@@ -145,7 +148,19 @@ public class TaskModal extends Dialog {
         });
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
+        Button deleteButton = new Button("Supprimer", VaadinIcon.TRASH.create(), e -> {
+            taskService.deleteTask(task);
+            close();
+            onCompletion.accept("La tâche a été supprimée avec succès !");
+        });
+        deleteButton.getElement().getStyle().set("color", "white");
+        deleteButton.getElement().getStyle().set("background-color", "#FF4D4F");
+        deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON);
+
         content.add(title, titleAndUser, statusComboBox, dateTimePicker, descriptionField, saveButton);
+        if (isEditMode) {
+            content.add(deleteButton);
+        }
         add(content);
     }
 

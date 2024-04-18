@@ -3,6 +3,7 @@ package org.pat.causeconnect.ui.project;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.datepicker.DatePicker;
@@ -36,6 +37,7 @@ import org.pat.causeconnect.ui.utils.NotificationUtils;
 
 import java.time.ZoneId;
 import java.util.*;
+import java.util.function.Consumer;
 
 @Route(value = "project", layout = MainLayout.class)
 @AnonymousAllowed
@@ -180,8 +182,12 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
 
     private void addTaskToColumn(Task task) {
         CardComponentDraggable card = new CardComponentDraggable(task.getTitle(), task.getDescription());
+        Consumer<String> onCompletion = message -> {
+            NotificationUtils.createNotification(message, true).open();
+            getUI().ifPresent(ui -> ui.navigate(ProjectView.class, projectId));
+        };
         ComponentEventListener<AttachEvent> listener = event -> card.addClickListener(e -> {
-            TaskModal taskModal = new TaskModal(task, associationService, taskService, eventManager);
+            TaskModal taskModal = new TaskModal(task, associationService, taskService, eventManager, onCompletion);
             taskModal.open();
         });
         card.addAttachListener(listener);
@@ -246,7 +252,21 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
         submitButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         submitButton.setWidthFull();
 
-        return new VerticalLayout(nameField, dateLayout, descriptionField, submitButton);
+        Button deleteButton = new Button("Supprimer", VaadinIcon.TRASH.create(), buttonClickEvent -> {
+            boolean isDeleted = projectService.deleteProject(project.getId());
+            if (isDeleted) {
+                getUI().ifPresent(ui -> ui.navigate(ProjectsView.class));
+                NotificationUtils.createNotification("Le projet a bien été supprimé", true).open();
+            } else {
+                NotificationUtils.createNotification("Une erreur est survenue lors de la suppression du projet", false).open();
+            }
+        });
+        deleteButton.getElement().getStyle().set("color", "white");
+        deleteButton.getElement().getStyle().set("background-color", "#FF4D4F");
+        deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON);
+        deleteButton.setWidthFull();
+
+        return new VerticalLayout(nameField, dateLayout, descriptionField, submitButton, deleteButton);
     }
 
     private void saveProjectConfiguration(String name, String description, Date startDate, Date endDate) {
