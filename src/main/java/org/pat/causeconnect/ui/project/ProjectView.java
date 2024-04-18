@@ -23,11 +23,13 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import org.pat.causeconnect.entity.Project;
+import org.pat.causeconnect.entity.User;
 import org.pat.causeconnect.entity.task.Task;
 import org.pat.causeconnect.entity.task.TaskStatus;
 import org.pat.causeconnect.plugin.events.EventManager;
 import org.pat.causeconnect.plugin.events.task.TaskMoveEvent;
 import org.pat.causeconnect.service.AssociationService;
+import org.pat.causeconnect.service.SecurityService;
 import org.pat.causeconnect.service.project.ProjectService;
 import org.pat.causeconnect.service.task.TaskService;
 import org.pat.causeconnect.ui.MainLayout;
@@ -55,15 +57,17 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
     private final TaskService taskService;
     private final AssociationService associationService;
     private final EventManager eventManager;
+    private final SecurityService securityService;
 
     private String projectId;
     private Project project;
 
-    public ProjectView(ProjectService projectService, TaskService taskService, AssociationService associationService, EventManager eventManager) {
+    public ProjectView(ProjectService projectService, TaskService taskService, AssociationService associationService, EventManager eventManager, SecurityService securityService) {
         this.projectService = projectService;
         this.taskService = taskService;
         this.associationService = associationService;
         this.eventManager = eventManager;
+        this.securityService = securityService;
 
         kanbanView.setWidthFull();
 
@@ -245,6 +249,14 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
 
         dateLayout.add(startDatePicker, endDatePicker);
 
+        Optional<User> currentUser = securityService.getAuthenticatedUser();
+        if (currentUser.isEmpty() || !currentUser.get().isAdmin()) {
+            nameField.setReadOnly(true);
+            descriptionField.setReadOnly(true);
+            startDatePicker.setReadOnly(true);
+            endDatePicker.setReadOnly(true);
+        }
+
         Button submitButton = new Button("Enregistrer", buttonClickEvent -> {
             String name = nameField.getValue();
             String description = descriptionField.getValue();
@@ -259,6 +271,7 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
         });
         submitButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         submitButton.setWidthFull();
+        submitButton.setVisible(currentUser.isPresent() && currentUser.get().isAdmin());
 
         Button deleteButton = new Button("Supprimer", VaadinIcon.TRASH.create(), buttonClickEvent -> {
             boolean isDeleted = projectService.deleteProject(project.getId());
@@ -273,6 +286,7 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
         deleteButton.getElement().getStyle().set("background-color", "#FF4D4F");
         deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON);
         deleteButton.setWidthFull();
+        deleteButton.setVisible(currentUser.isPresent() && currentUser.get().isAdmin());
 
         return new VerticalLayout(nameField, dateLayout, descriptionField, submitButton, deleteButton);
     }

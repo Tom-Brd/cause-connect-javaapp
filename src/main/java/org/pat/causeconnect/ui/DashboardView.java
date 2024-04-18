@@ -13,10 +13,12 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import org.pat.causeconnect.entity.Project;
+import org.pat.causeconnect.entity.User;
 import org.pat.causeconnect.entity.task.Task;
 import org.pat.causeconnect.entity.task.TaskStatus;
 import org.pat.causeconnect.plugin.events.EventManager;
 import org.pat.causeconnect.service.AssociationService;
+import org.pat.causeconnect.service.SecurityService;
 import org.pat.causeconnect.service.project.ProjectService;
 import org.pat.causeconnect.service.task.TaskService;
 import org.pat.causeconnect.ui.component.CardComponent;
@@ -38,8 +40,11 @@ import java.util.function.Consumer;
 public class DashboardView extends VerticalLayout {
 
     private final Consumer<String> onCompletion;
+    private final SecurityService securityService;
 
-    public DashboardView(ProjectService projectService, TaskService taskService, AssociationService associationService, EventManager eventManager) {
+    public DashboardView(ProjectService projectService, TaskService taskService, AssociationService associationService, EventManager eventManager, SecurityService securityService) {
+        this.securityService = securityService;
+
         onCompletion = message -> {
             NotificationUtils.createNotification(message, true).open();
             getUI().ifPresent(ui -> ui.getPage().reload());
@@ -115,8 +120,11 @@ public class DashboardView extends VerticalLayout {
         });
         createProjectButton.setIcon(VaadinIcon.PLUS.create());
         createProjectButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        add(createProjectButton);
 
+        Optional<User> currentUser = securityService.getAuthenticatedUser();
+        createProjectButton.setVisible(currentUser.isPresent() && currentUser.get().isAdmin());
+
+        add(createProjectButton);
 
         Button viewAllProjectsButton;
         if (projects.size() > 3) {
