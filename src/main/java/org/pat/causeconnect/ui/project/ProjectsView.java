@@ -13,6 +13,8 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import org.pat.causeconnect.entity.Project;
+import org.pat.causeconnect.entity.User;
+import org.pat.causeconnect.service.SecurityService;
 import org.pat.causeconnect.service.project.ProjectService;
 import org.pat.causeconnect.ui.MainLayout;
 import org.pat.causeconnect.ui.component.CardComponent;
@@ -21,13 +23,14 @@ import org.pat.causeconnect.ui.utils.NotificationUtils;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 @Route(value = "projects", layout = MainLayout.class)
 @AnonymousAllowed
 @PageTitle("Mes Projets")
 public class ProjectsView extends VerticalLayout {
-    public ProjectsView(ProjectService projectService) {
+    public ProjectsView(ProjectService projectService, SecurityService securityService) {
 
         setSizeFull();
         ArrayList<Project> projects = projectService.getMyProjects();
@@ -48,6 +51,10 @@ public class ProjectsView extends VerticalLayout {
         });
         createProjectButton.setIcon(VaadinIcon.PLUS.create());
         createProjectButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        Optional<User> currentUser = securityService.getAuthenticatedUser();
+        createProjectButton.setVisible(currentUser.isPresent() && currentUser.get().isAdmin());
+
         add(createProjectButton);
 
         FlexLayout projectList = new FlexLayout();

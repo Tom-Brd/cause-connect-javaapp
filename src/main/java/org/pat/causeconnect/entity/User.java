@@ -18,4 +18,8 @@ public class User {
     private String fullName;
     private List<GrantedAuthority> role;
     private Association association;
+
+    public boolean isAdmin() {
+        return role.stream().anyMatch(r -> r.getAuthority().equals("USER_ADMIN"));
+    }
 }

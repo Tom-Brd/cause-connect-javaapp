@@ -57,7 +57,7 @@ public class AssociationService {
         }
         
         RestTemplate restTemplate = new RestTemplate();
-        String url = baseUrl + "/users";
+        String url = baseUrl + "/users/internal";
         String token = VaadinSession.getCurrent().getAttribute("token").toString();
 
         HttpHeaders headers = new HttpHeaders();
