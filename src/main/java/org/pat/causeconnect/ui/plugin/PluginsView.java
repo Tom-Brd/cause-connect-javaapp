@@ -32,7 +32,7 @@ public class PluginsView extends VerticalLayout {
     private TextField nameFilter;
     private TextField authorFilter;
     private final PluginService pluginService;
-    private List<Plugin> plugins = new ArrayList<>();
+    private final List<Plugin> plugins;
 
     public PluginsView(PluginService pluginService) {
         this.pluginService = pluginService;
@@ -40,7 +40,7 @@ public class PluginsView extends VerticalLayout {
         setSizeFull();
         addClassName("plugins-view");
 
-        if (plugins.isEmpty()) {
+        if (plugins == null) {
             add(new Div("Aucun plugin à afficher"));
             return;
         }

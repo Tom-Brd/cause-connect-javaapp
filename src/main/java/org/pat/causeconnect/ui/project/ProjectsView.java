@@ -38,7 +38,6 @@ public class ProjectsView extends VerticalLayout {
         add(new H2("Mes Projets"));
 
         Consumer<String> onCompletion = message -> {
-            NotificationUtils.createNotification(message, true).open();
             getUI().ifPresent(ui -> ui.getPage().reload());
         };
         Button createProjectButton = new Button("Créer un projet", e -> {

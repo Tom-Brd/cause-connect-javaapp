@@ -55,7 +55,6 @@ public class TasksView extends VerticalLayout {
             projectSection.setOpened(true);
 
             Consumer<String> onCompletion = message -> {
-                NotificationUtils.createNotification(message, true).open();
                 getUI().ifPresent(ui -> ui.getPage().reload());
             };
 
