@@ -100,8 +100,6 @@ public class PluginService {
             Files.move(tempPath, pluginPath.resolve(fileName));
 
             pluginLoader.loadPlugin(fileName);
-
-            NotificationUtils.createNotification("Plugin installé avec succès", true).open();
         } catch (Exception e) {
             NotificationUtils.createNotification("Erreur lors de l'installation du plugin" + e.getMessage(), false).open();
         }
@@ -114,7 +112,6 @@ public class PluginService {
         try {
             pluginLoader.unloadPlugin(fileName);
             Files.deleteIfExists(pluginPath.resolve(fileName));
-            NotificationUtils.createNotification("Plugin supprimé", true).open();
         } catch (Exception e) {
             NotificationUtils.createNotification("Erreur lors de la suppression du plugin", false).open();
         }
