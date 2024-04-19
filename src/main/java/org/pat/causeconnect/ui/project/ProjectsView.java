@@ -37,10 +37,6 @@ public class ProjectsView extends VerticalLayout {
 
         add(new H2("Mes Projets"));
 
-        if (projects.isEmpty()) {
-            add(new Div("Aucun projet à afficher"));
-            return;
-        }
         Consumer<String> onCompletion = message -> {
             NotificationUtils.createNotification(message, true).open();
             getUI().ifPresent(ui -> ui.getPage().reload());
@@ -51,6 +47,12 @@ public class ProjectsView extends VerticalLayout {
         });
         createProjectButton.setIcon(VaadinIcon.PLUS.create());
         createProjectButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        if (projects.isEmpty()) {
+            add(new Div("Aucun projet à afficher"));
+            add(createProjectButton);
+            return;
+        }
 
         Optional<User> currentUser = securityService.getAuthenticatedUser();
         createProjectButton.setVisible(currentUser.isPresent() && currentUser.get().isAdmin());

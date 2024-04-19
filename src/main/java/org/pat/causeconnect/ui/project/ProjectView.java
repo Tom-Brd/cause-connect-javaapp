@@ -110,8 +110,7 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
         kanbanView.removeAll();
 
         Consumer<String> onCompletion = message -> {
-            NotificationUtils.createNotification(message, true).open();
-            getUI().ifPresent(ui -> ui.navigate(ProjectView.class, projectId));
+            getUI().ifPresent(ui -> ui.getPage().reload());
         };
         Button createTaskButton = new Button("Créer une tâche", e -> {
             TaskModal taskModal = new TaskModal(project, associationService, taskService, eventManager, onCompletion);
@@ -152,9 +151,6 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
     }
 
     private void makeColumnDropTarget(Div column, TaskStatus status) {
-        Consumer<String> onCompletion = message -> {
-            getUI().ifPresent(ui -> ui.getPage().reload());
-        };
         DropTarget.create(column).addDropListener(event -> {
             Optional<Component> dragSourceComponent = event.getDragSourceComponent();
             dragSourceComponent.ifPresent(card -> {
@@ -181,7 +177,7 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
                 previousParent.remove(card);
 
                 column.add(card);
-                onCompletion.accept("La tâche a été déplacée avec succès !");
+                getUI().ifPresent(ui -> ui.getPage().reload());
             });
         });
     }

@@ -76,10 +76,10 @@ public class PluginService {
         return parts[parts.length - 1];
     }
 
-    public void installPlugin(Plugin plugin) {
+    public boolean installPlugin(Plugin plugin) {
         if (!internetCheckService.hasInternetConnection()) {
             NotificationUtils.createNotification("Pas de connexion Internet, l'installation a échoué", false).open();
-            return;
+            return false;
         }
 
         RestTemplate restTemplate = new RestTemplate();
@@ -89,7 +89,7 @@ public class PluginService {
             Resource resource = restTemplate.getForObject(downloadUrl, Resource.class);
             if (resource == null || !resource.isReadable()) {
                 NotificationUtils.createNotification("Erreur lors de la récupération du plugin", false).open();
-                return;
+                return false;
             }
 
             Path tempPath = Files.createTempFile(plugin.getName(), ".jar");
@@ -100,20 +100,24 @@ public class PluginService {
             Files.move(tempPath, pluginPath.resolve(fileName));
 
             pluginLoader.loadPlugin(fileName);
+            return true;
         } catch (Exception e) {
             NotificationUtils.createNotification("Erreur lors de l'installation du plugin" + e.getMessage(), false).open();
+            return false;
         }
     }
 
-    public void deletePlugin(Plugin plugin) {
+    public boolean deletePlugin(Plugin plugin) {
         Path pluginPath = getPluginPath();
         String fileName = getFileName(plugin.getJarFilePath());
         System.out.println("Deleting plugin: " + fileName);
         try {
             pluginLoader.unloadPlugin(fileName);
             Files.deleteIfExists(pluginPath.resolve(fileName));
+            return true;
         } catch (Exception e) {
             NotificationUtils.createNotification("Erreur lors de la suppression du plugin", false).open();
+            return false;
         }
     }
 }

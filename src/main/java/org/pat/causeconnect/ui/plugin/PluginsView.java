@@ -20,6 +20,7 @@ import org.pat.causeconnect.ui.MainLayout;
 import org.pat.causeconnect.ui.project.ProjectView;
 import org.pat.causeconnect.ui.utils.NotificationUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -31,7 +32,7 @@ public class PluginsView extends VerticalLayout {
     private TextField nameFilter;
     private TextField authorFilter;
     private final PluginService pluginService;
-    private final List<Plugin> plugins;
+    private List<Plugin> plugins = new ArrayList<>();
 
     public PluginsView(PluginService pluginService) {
         this.pluginService = pluginService;
@@ -96,14 +97,11 @@ public class PluginsView extends VerticalLayout {
 
     private Button createCallApiButton(Plugin plugin) {
         boolean isPluginInstalled = pluginService.isPluginInstalled(plugin.getJarFilePath());
-        Consumer<String> onCompletion = message -> {
-            NotificationUtils.createNotification(message, true).open();
-            getUI().ifPresent(ui -> ui.getPage().reload());
-        };
         if (isPluginInstalled) {
             Button deleteButton = new Button("Supprimer", VaadinIcon.TRASH.create(), click -> {
-                pluginService.deletePlugin(plugin);
-                onCompletion.accept("Le plugin a été supprimé avec succès !");
+                if (pluginService.deletePlugin(plugin)) {
+                    getUI().ifPresent(ui -> ui.getPage().reload());
+                }
             });
             deleteButton.getElement().getStyle().set("color", "white");
             deleteButton.getElement().getStyle().set("background-color", "#FF4D4F");
@@ -111,8 +109,9 @@ public class PluginsView extends VerticalLayout {
             return deleteButton;
         }
         return new Button("Télécharger", click -> {
-            pluginService.installPlugin(plugin);
-            onCompletion.accept("Le plugin a été installé avec succès !");
+            if (pluginService.installPlugin(plugin)) {
+                getUI().ifPresent(ui -> ui.getPage().reload());
+            }
         });
     }
 

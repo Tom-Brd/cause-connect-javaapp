@@ -82,8 +82,6 @@ public class PluginLoader {
 
             if (!pluginLoaded) {
                 NotificationUtils.createNotification("Le fichier n'est pas un plugin valide", false).open();
-            } else {
-                NotificationUtils.createNotification("Plugin chargé avec succès", true).open();
             }
         } catch (IOException e) {
             NotificationUtils.createNotification("Erreur lors du chargement du plugin", false).open();
@@ -129,8 +127,6 @@ public class PluginLoader {
                 pluginsList.remove(causeConnectPlugin);
 
                 System.gc();
-
-                NotificationUtils.createNotification("Plugin déchargé avec succès", true).open();
             } catch (Exception e) {
                 NotificationUtils.createNotification("Erreur lors du déchargement du plugin", false).open();
             }

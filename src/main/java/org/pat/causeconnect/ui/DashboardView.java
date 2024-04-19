@@ -109,17 +109,18 @@ public class DashboardView extends VerticalLayout {
     private void createProjectsLayout(ArrayList<Project> projects, ProjectService projectService) {
         add(new H2("Mes Projets"));
 
-        if (projects.isEmpty()) {
-            add(new Div("Aucun projet à afficher"));
-            return;
-        }
-
         Button createProjectButton = new Button("Créer un projet", e -> {
             ProjectModal projectModal = new ProjectModal(projectService, onCompletion);
             projectModal.open();
         });
         createProjectButton.setIcon(VaadinIcon.PLUS.create());
         createProjectButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        if (projects.isEmpty()) {
+            add(new Div("Aucun projet à afficher"));
+            add(createProjectButton);
+            return;
+        }
 
         Optional<User> currentUser = securityService.getAuthenticatedUser();
         createProjectButton.setVisible(currentUser.isPresent() && currentUser.get().isAdmin());
