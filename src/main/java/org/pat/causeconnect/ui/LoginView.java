@@ -16,6 +16,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import org.pat.causeconnect.config.InvalidRoleException;
 import org.pat.causeconnect.entity.Association;
 import org.pat.causeconnect.entity.AssociationContext;
 import org.pat.causeconnect.service.AssociationService;
@@ -134,6 +135,9 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                 emailField.setInvalid(true);
                 passwordField.setInvalid(true);
                 NotificationUtils.createNotification("Email ou mot de passe incorrect.", false).open();
+                isValid.set(false);
+            } catch (InvalidRoleException ex) {
+                NotificationUtils.createNotification("Vous n'êtes pas autorisé à vous connecter.", false).open();
                 isValid.set(false);
             }
         }

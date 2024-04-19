@@ -1,6 +1,7 @@
 package org.pat.causeconnect.service.auth;
 
 import com.vaadin.flow.server.VaadinSession;
+import org.pat.causeconnect.config.InvalidRoleException;
 import org.pat.causeconnect.entity.Association;
 import org.pat.causeconnect.entity.AssociationContext;
 import org.pat.causeconnect.entity.User;
@@ -47,6 +48,10 @@ public class AuthenticationService {
                 VaadinSession.getCurrent().setAttribute("token", response.getToken());
                 UserDetailResponse userDetail = getUserDetails(response.getToken());
                 User userDetails = createUserDetails(userDetail, association);
+
+                if (userDetails.isExternal()) {
+                    throw new InvalidRoleException("External users are not allowed to login");
+                }
 
                 return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getRole());
             } else {

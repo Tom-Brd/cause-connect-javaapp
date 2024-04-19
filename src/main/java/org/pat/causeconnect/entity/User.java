@@ -22,4 +22,8 @@ public class User {
     public boolean isAdmin() {
         return role.stream().anyMatch(r -> r.getAuthority().equals("USER_ADMIN"));
     }
+
+    public boolean isExternal() {
+        return role.stream().anyMatch(r -> r.getAuthority().equals("USER_EXTERNAL"));
+    }
 }
