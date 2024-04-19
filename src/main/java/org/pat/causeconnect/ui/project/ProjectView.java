@@ -152,12 +152,11 @@ public class ProjectView extends VerticalLayout implements HasUrlParameter<Strin
     }
 
     private void makeColumnDropTarget(Div column, TaskStatus status) {
+        Consumer<String> onCompletion = message -> {
+            getUI().ifPresent(ui -> ui.getPage().reload());
+        };
         DropTarget.create(column).addDropListener(event -> {
             Optional<Component> dragSourceComponent = event.getDragSourceComponent();
-            Consumer<String> onCompletion = message -> {
-                NotificationUtils.createNotification(message, true).open();
-                getUI().ifPresent(ui -> ui.navigate(ProjectView.class, projectId));
-            };
             dragSourceComponent.ifPresent(card -> {
                 Task task = taskService.getTaskById(card.getId().get());
                 if (task == null) {
