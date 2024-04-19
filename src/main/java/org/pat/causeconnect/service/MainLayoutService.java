@@ -1,9 +1,9 @@
 package org.pat.causeconnect.service;
 
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
+@Component
 public class MainLayoutService {
     private HorizontalLayout pluginContainer;
 

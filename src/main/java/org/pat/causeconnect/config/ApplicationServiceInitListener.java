@@ -16,6 +16,7 @@ public class ApplicationServiceInitListener implements VaadinServiceInitListener
     @Override
     public void serviceInit(ServiceInitEvent serviceInitEvent) {
         System.out.println("In serviceInit");
+        BrowserUtil.openBrowser();
         try {
             pluginLoader.loadPlugins();
         } catch (Exception e) {
