@@ -2,6 +2,7 @@ package org.pat.causeconnect.plugin;
 
 import org.pat.causeconnect.entity.Plugin;
 import org.pat.causeconnect.plugin.events.EventManager;
+import org.pat.causeconnect.service.MainLayoutService;
 import org.pat.causeconnect.ui.utils.NotificationUtils;
 import org.springframework.stereotype.Component;
 
@@ -18,9 +19,11 @@ public class PluginLoader {
     private final Map<String, URLClassLoader> pluginLoaders = new HashMap<>();
 
     private final EventManager eventManager;
+    private final MainLayoutService mainLayoutService;
 
-    public PluginLoader(EventManager eventManager) {
+    public PluginLoader(EventManager eventManager, MainLayoutService mainLayoutService) {
         this.eventManager = eventManager;
+        this.mainLayoutService = mainLayoutService;
     }
 
     public void loadPlugins() throws Exception {
@@ -40,7 +43,7 @@ public class PluginLoader {
                     pluginInstances.put(pluginName, plugin);
                     pluginLoaders.put(pluginName, loader);
                     System.out.println("plugin: " + plugin);
-                    plugin.load(eventManager);
+                    plugin.load(eventManager, mainLayoutService);
                     pluginsMap.put(plugin, true);
 
                     for (ViewConfiguration viewConfiguration : plugin.getViews()) {
@@ -71,7 +74,7 @@ public class PluginLoader {
             pluginInstances.put(pluginFileName, causeConnectPlugin);
             pluginLoaders.put(pluginFileName, loader);
             pluginsMap.put(causeConnectPlugin, false);
-            causeConnectPlugin.load(eventManager);
+            causeConnectPlugin.load(eventManager, mainLayoutService);
 
             for (ViewConfiguration viewConfiguration : causeConnectPlugin.getViews()) {
                 viewConfiguration.registerViews();
