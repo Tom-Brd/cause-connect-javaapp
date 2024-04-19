@@ -26,6 +26,8 @@ import org.pat.causeconnect.entity.Theme;
 import org.pat.causeconnect.entity.User;
 import org.pat.causeconnect.plugin.NavItemConfiguration;
 import org.pat.causeconnect.plugin.PluginLoader;
+import org.pat.causeconnect.plugin.events.EventManager;
+import org.pat.causeconnect.plugin.events.mainLayout.PluginContainerCreatedEvent;
 import org.pat.causeconnect.service.MainLayoutService;
 import org.pat.causeconnect.service.SecurityService;
 import org.pat.causeconnect.service.theme.ThemeService;
@@ -47,14 +49,16 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
     private final AccessAnnotationChecker accessChecker;
     private final PluginLoader pluginLoader;
     private final MainLayoutService mainLayoutService;
+    private final EventManager eventManager;
 
     private User user;
 
-    public MainLayout(SecurityService securityService, AccessAnnotationChecker accessChecker, ThemeService themeService, PluginLoader pluginLoader, MainLayoutService mainLayoutService) {
+    public MainLayout(SecurityService securityService, AccessAnnotationChecker accessChecker, ThemeService themeService, PluginLoader pluginLoader, MainLayoutService mainLayoutService, EventManager eventManager) {
         this.securityService = securityService;
         this.accessChecker = accessChecker;
         this.pluginLoader = pluginLoader;
         this.mainLayoutService = mainLayoutService;
+        this.eventManager = eventManager;
 
         this.sideNav = createNavigation();
 
@@ -106,6 +110,9 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         pluginContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER );
         pluginContainer.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         mainLayoutService.setPluginContainer(pluginContainer);
+
+        PluginContainerCreatedEvent event = new PluginContainerCreatedEvent(pluginContainer);
+        eventManager.fireEvent(event);
 
         Button closeButton = new Button("Quitter", e -> securityService.shutdown());
         closeButton.setIcon(VaadinIcon.ARROW_RIGHT.create());
