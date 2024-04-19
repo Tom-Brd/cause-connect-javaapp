@@ -1,6 +1,5 @@
 package org.pat.causeconnect.ui;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
@@ -25,9 +24,9 @@ import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.pat.causeconnect.entity.Theme;
 import org.pat.causeconnect.entity.User;
-import org.pat.causeconnect.plugin.HeaderPlugin;
 import org.pat.causeconnect.plugin.NavItemConfiguration;
 import org.pat.causeconnect.plugin.PluginLoader;
+import org.pat.causeconnect.service.MainLayoutService;
 import org.pat.causeconnect.service.SecurityService;
 import org.pat.causeconnect.service.theme.ThemeService;
 import org.pat.causeconnect.ui.plugin.PluginsView;
@@ -47,13 +46,15 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
     private final SecurityService securityService;
     private final AccessAnnotationChecker accessChecker;
     private final PluginLoader pluginLoader;
+    private final MainLayoutService mainLayoutService;
 
     private User user;
 
-    public MainLayout(SecurityService securityService, AccessAnnotationChecker accessChecker, ThemeService themeService, PluginLoader pluginLoader) {
+    public MainLayout(SecurityService securityService, AccessAnnotationChecker accessChecker, ThemeService themeService, PluginLoader pluginLoader, MainLayoutService mainLayoutService) {
         this.securityService = securityService;
         this.accessChecker = accessChecker;
         this.pluginLoader = pluginLoader;
+        this.mainLayoutService = mainLayoutService;
 
         this.sideNav = createNavigation();
 
@@ -71,7 +72,6 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         setPrimarySection(Section.DRAWER);
         setTheme(themeService.getTheme());
         createHeader();
-        loadHeaderPlugins();
         createDrawer();
     }
 
@@ -105,6 +105,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         pluginContainer.setAlignItems(FlexComponent.Alignment.CENTER);
         pluginContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER );
         pluginContainer.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        mainLayoutService.setPluginContainer(pluginContainer);
 
         Button closeButton = new Button("Quitter", e -> securityService.shutdown());
         closeButton.setIcon(VaadinIcon.ARROW_RIGHT.create());
@@ -119,13 +120,6 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         headerLayout.add(toggle, viewTitle, pluginContainer, closeButton);
 
         addToNavbar(true, headerLayout);
-    }
-
-    private void loadHeaderPlugins() {
-        List<HeaderPlugin> headerPlugins = pluginLoader.getAllHeaderPlugins();
-        for (HeaderPlugin plugin : headerPlugins) {
-            plugin.addToHeader(pluginContainer);
-        }
     }
 
     private void createDrawer() {

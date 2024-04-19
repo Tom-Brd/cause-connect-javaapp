@@ -24,7 +24,7 @@ public class NotificationUtils {
         notification.addThemeVariants(isSuccess ?
                 NotificationVariant.LUMO_SUCCESS :
                 NotificationVariant.LUMO_ERROR);
-        notification.setDuration(5000);
+        notification.setDuration(3000);
         return notification;
     }
 }

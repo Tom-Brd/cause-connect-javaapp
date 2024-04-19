@@ -13,7 +13,7 @@ import java.util.*;
 
 @Component
 public class PluginLoader {
-    private final List<CauseConnectPlugin> pluginsList = new ArrayList<>();
+    private final Map<CauseConnectPlugin, Boolean> pluginsMap = new HashMap<>();
     private final Map<String, CauseConnectPlugin> pluginInstances = new HashMap<>();
     private final Map<String, URLClassLoader> pluginLoaders = new HashMap<>();
 
@@ -39,9 +39,9 @@ public class PluginLoader {
                     String pluginName = jar.getName();
                     pluginInstances.put(pluginName, plugin);
                     pluginLoaders.put(pluginName, loader);
-                    pluginsList.add(plugin);
                     System.out.println("plugin: " + plugin);
                     plugin.load(eventManager);
+                    pluginsMap.put(plugin, true);
 
                     for (ViewConfiguration viewConfiguration : plugin.getViews()) {
                         viewConfiguration.registerViews();
@@ -65,45 +65,30 @@ public class PluginLoader {
 
         try (URLClassLoader loader = URLClassLoader.newInstance(new URL[]{plugin.toURI().toURL()}, CauseConnectPlugin.class.getClassLoader())) {
             ServiceLoader<CauseConnectPlugin> serviceLoader = ServiceLoader.load(CauseConnectPlugin.class, loader);
-            boolean pluginLoaded = false;
 
-            for (CauseConnectPlugin causeConnectPlugin : serviceLoader) {
-                pluginInstances.put(pluginFileName, causeConnectPlugin);
-                pluginLoaders.put(pluginFileName, loader);
-                pluginsList.add(causeConnectPlugin);
-                causeConnectPlugin.load(eventManager);
+            CauseConnectPlugin causeConnectPlugin = serviceLoader.iterator().next();
 
-                for (ViewConfiguration viewConfiguration : causeConnectPlugin.getViews()) {
-                    viewConfiguration.registerViews();
-                }
+            pluginInstances.put(pluginFileName, causeConnectPlugin);
+            pluginLoaders.put(pluginFileName, loader);
+            pluginsMap.put(causeConnectPlugin, false);
+            causeConnectPlugin.load(eventManager);
 
-                pluginLoaded = true;
+            for (ViewConfiguration viewConfiguration : causeConnectPlugin.getViews()) {
+                viewConfiguration.registerViews();
             }
 
-            if (!pluginLoaded) {
-                NotificationUtils.createNotification("Le fichier n'est pas un plugin valide", false).open();
-            }
-        } catch (IOException e) {
+            pluginsMap.put(causeConnectPlugin, true);
+        } catch (Exception e) {
             NotificationUtils.createNotification("Erreur lors du chargement du plugin", false).open();
         }
     }
 
     public List<NavItemConfiguration> getAllNavItems() {
         List<NavItemConfiguration> navItems = new ArrayList<>();
-        for (CauseConnectPlugin plugin : pluginsList) {
+        for (CauseConnectPlugin plugin : pluginsMap.keySet()) {
             navItems.addAll(plugin.getNavItems());
         }
         return navItems;
-    }
-
-    public List<HeaderPlugin> getAllHeaderPlugins() {
-        List<HeaderPlugin> headerPlugins = new ArrayList<>();
-        for (CauseConnectPlugin plugin : pluginsList) {
-            if (plugin instanceof HeaderPlugin) {
-                headerPlugins.add((HeaderPlugin) plugin);
-            }
-        }
-        return headerPlugins;
     }
 
     public void unloadPlugin(String pluginFileName) {
@@ -124,7 +109,7 @@ public class PluginLoader {
 
                 pluginInstances.remove(pluginFileName);
                 pluginLoaders.remove(pluginFileName);
-                pluginsList.remove(causeConnectPlugin);
+                pluginsMap.remove(causeConnectPlugin);
 
                 System.gc();
             } catch (Exception e) {
